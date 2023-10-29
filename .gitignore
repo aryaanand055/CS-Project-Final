@@ -1,22 +1,10 @@
-# Ignore compiled Python files
 __pycache__/
 *.pyc
-
-# Ignore database files
 db.sqlite3
-
-
-
-# Ignore virtual environment directory
+suggestions.txt
 venv/
 env/
-
-# Ignore secret key files
 *.key
-
-# Ignore log files
 *.log
-
-# Ignore pipenv virtual environment
 Pipfile.lock
 Pipfile
