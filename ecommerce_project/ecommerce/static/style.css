@@ -1,0 +1,103 @@
+* {
+    font-family: 'Sacramento',
+        cursive;
+    font-family: 'Comfortaa',
+        cursive;
+}
+
+.product_image {
+    height: 280px;
+    /* max-width: 100%; */
+    /* width: 100%; */
+    /* margin: auto; */
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+
+footer {
+    width: 100%;
+    text-align: center;
+}
+
+footer p {
+    color: rgba(255, 255, 255, 0.451)
+}
+
+footer .navbar-container {
+    max-width: 85%;
+    height: 100px;
+}
+
+.navbar-nav {
+    font-size: large;
+}
+
+.nav-link {
+    cursor: pointer;
+}
+
+.product-card {
+    border: 0;
+}
+
+.product-image-container button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+}
+
+.header-logo {
+    /* width: 60px; */
+    /* object-fit: fill; */
+    height: 23px;
+}
+
+.product-details {
+    gap: 5%;
+    margin: auto;
+    margin-top: 50px;
+}
+
+.product-info {
+    padding: 5%;
+
+}
+
+.product-price-desc {
+    color: rgb(197, 196, 196);
+}
+
+.product-info-price {
+    font-weight: bolder;
+    margin-top: 40px;
+    margin-bottom: 40px;
+
+}
+
+.product-details img {
+    object-fit: cover;
+}
+
+.header-section {
+    background-image: url("/image/download/uploads/images/background4.jpg");
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    padding: 50px;
+    height: 45vw;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.header-section .container {
+    position: relative;
+    left: 10px;
+    top: 40%;
+    font-size: larger;
+}

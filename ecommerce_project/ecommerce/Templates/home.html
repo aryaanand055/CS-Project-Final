@@ -1,0 +1,40 @@
+{% extends "master.html" %}
+
+{% block title %}E-Commerce Store{% endblock %}
+
+{% block content %}
+<section class="header-section">
+    <div class="container">
+        <h1>Welcome to the E-commerce store!</h1>
+        <p>This is a simple e-commerce website built with Python and Django.</p>
+        <a href="{% url 'products' %}" class="btn btn-primary my-2">Go Shopping &raquo;</a>
+    </div>
+</section>
+
+</section>
+<section class="container my-5">
+    <div class="row text-center">
+
+        <div class="col-lg-12 card shadow m-2">
+            <h2 class="card-header">Discover our Products</h2>
+            <a href="{% url 'products' %}" class="btn btn-secondary my-2 w-25 m-auto mt-4">Let's Discover
+                &raquo;</a>
+
+            <p class="card-body">Explore a wide range of products from various categories.</p>
+        </div>
+        <div class="col-lg-12 card shadow m-2">
+            <h2 class="card-header">Contact Us</h2>
+            <p class="card-body">If you have any questions or need assistance, feel free to contact us:</p>
+            <ul>
+                Email: <a href="mailto:aryaanand053@gmail.com">aryaanand053@gmail.com</a><br>
+                WhatsApp: +1234567890
+                <!-- Add more contact options as needed -->
+            </ul>
+        </div>
+    </div>
+</section>
+<section class="container">
+    {% lorem 5000 w %}
+
+</section>
+{% endblock %}

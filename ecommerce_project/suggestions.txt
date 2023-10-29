@@ -1,0 +1,2 @@
+1. Add a return url to the login and the signup pages
+2. Hash passwords before saving 

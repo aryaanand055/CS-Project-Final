@@ -1,0 +1,91 @@
+{% extends 'master.html' %}
+{% load mathfilters %}
+{% block title %}Your Cart{% endblock %}
+
+{% block content %}
+<div class="container w-75 m-auto mt-5 mb-5">
+    <h1>Your Cart</h1>
+
+    {% if cart_items %}
+    <form method="post" action="{% url 'update_cart' %}">
+        {% csrf_token %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>MRP</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cart_item in cart_items %}
+                <tr>
+                    <td>{{ cart_item.product.name }}</td>
+                    <td>
+                        <div class="input-group w-25">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default btn-number minus"
+                                    data-field="quantity_{{ cart_item.id }}">
+                                    <span class="fa fa-minus minus"></span>
+                                </button>
+                            </span>
+                            <input type="text" name="quantity_{{ cart_item.id }}" value="{{ cart_item.quantity }}"
+                                class="form-control input-number border-0 text-center" min="1">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default btn-number plus"
+                                    data-field="quantity_{{ cart_item.id }}">
+                                    <span class="fa fa-plus plus"></span>
+                                </button>
+                            </span>
+                        </div>
+
+                    </td>
+                    <td>${{ cart_item.product.price }}</td>
+                    <td>${{ cart_item.product.price|mul:cart_item.quantity }}</td>
+                    <td>
+                        <a href="{% url 'remove_from_cart' cart_item.id %}" class="link-danger">Remove</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div>
+            <p class=""><b>Total Price:</b> ${{ total_price }}</p>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Cart</button>
+    </form>
+    <a href="{% url 'empty_cart' %}" class="btn btn-secondary">Empty Cart</a>
+    <a href="#" class="btn btn-secondary">Enquire best price</a>
+    {% else %}
+    <p>Your cart is empty.</p>
+    {% endif %}
+</div>
+<script>
+    // Add event listeners to the plus and minus buttons
+    document.querySelectorAll('.btn-number').forEach(function (button) {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (e.target.parentElement.parentElement.tagName == "DIV") {
+                inputQ = e.target.parentElement.parentElement.querySelector("input")
+            } else {
+                inputQ = e.target.parentElement.parentElement.parentElement.querySelector(
+                    "input")
+            }
+            var currentVal = parseInt(inputQ.value);
+            if (!isNaN(currentVal)) {
+                if (e.target.classList.contains("minus")) {
+                    inputQ.value = inputQ.value - 1
+                } else if (e.target.classList.contains("plus")) {
+
+                    inputQ.value = parseInt(inputQ.value) + 1
+                }
+            } else {
+                inputQ.value = 1;
+            }
+        });
+    });
+</script>
+
+{% endblock %}

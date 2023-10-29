@@ -1,0 +1,44 @@
+{% extends "master.html" %}
+{% block title %}
+{{ product.name }}
+{% endblock %}
+
+{% block content %}
+
+
+<section class="product-details d-flex flex-row justify-content-around p-3 w-75">
+    <img src=" {{ product.image.url }}" alt="{{ product.name }}" class="img-fluid product-image rounded-5 w-50">
+    <div class="product-info w-50">
+        <!-- If statement in Django template -->
+        {% if product.tagline %}
+        <h4 class="text-danger product-tagline">{{ product.tagline }}</h4>
+        {% endif %}
+        <h2>{{ product.name }}</h2>
+        <p class="product-description">{{ product.description }}</p>
+        <div class="product-info-price">
+            <p class="product-price">Price: ₹{{ product.price }}<br>
+                <span class="product-price-desc">incl. of taxes <br>(Also includes all applicable duties)</span>
+            </p>
+        </div>
+        <div class="product-info-button-group">
+            {% if cart_quantity == 0 %}
+            <a href="{% url 'add_to_cart' product_id=product.id %}" class="btn btn-dark rounded-5 p-3 m-2 w-100">Add to
+                Bag</a>
+            {% else %}
+            <div class="btn-group w-100 rounded-4 p-4 m-2">
+                <a type="button" class="btn btn-outline-dark p-2"
+                    href="{% url 'remove_from_cart1' product_id=product.id %}"> <span
+                        class=" fa fa-minus minus"></span></a>
+                <a type="button" class="btn btn-outline-dark p-2"> {{ cart_quantity }}</a>
+                <a type="button" class="btn btn-outline-dark p-2" href="{% url 'add_to_cart' product_id=product.id %}">
+                    <span class="fa fa-plus plus"></span></a>
+            </div>
+            {% endif %}
+
+            <a href="" class="btn btn-outline-dark rounded-5 p-3 m-2 w-100">Add to Wishlist</a>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
