@@ -15,7 +15,7 @@ Clone the repository to your local machine using Git:
 
 2. Navigate to the project directory:
    ```
-   cd ecommerce-project
+   cd ecommerce_project
    ```
 (Ignore the next step if you don't have any other django projects in usage).  
 Create a virtual environment (optional) and activate it: 
