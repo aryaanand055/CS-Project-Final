@@ -7,41 +7,17 @@
 - Python (3.6 or higher)
 - pip (Python package manager)
 
-### Clone the Repository
 
-Clone the repository to your local machine using Git:
 
-1. `git clone https://github.com/aryaanand055/CS-Project-Final.git`
-
-2. Navigate to the project directory:
-   ```
-   cd ecommerce_project
-   ```
-(Ignore the next step if you don't have any other django projects in usage).  
-Create a virtual environment (optional) and activate it: 
-
-1. `python -m venv venv` (Create a virtual environment)
-2. `source venv/bin/activate` (Activate the virtual environment)
-
-Install project dependencies from the `requirements.txt` file:
-
-1. `pip install -r requirements.txt`
 
 ## Running the Project
 
-Apply database migrations:
+First download the zip files and extract them.   
+then open the terminal in the folder.
 
-1. `python manage.py migrate`
-   
-Create a superuser (for admin access):  
-(Not Neccessary if you are just viewing the site)
+1. `pip install -r requirements.txt`
+2. `python manage.py runserver`
 
-
-1. `python manage.py createsuperuser`
-
-Run the development server:
-
-1. `python manage.py runserver`
 
 The project should be available at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
