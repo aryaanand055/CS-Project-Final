@@ -26,68 +26,69 @@
 </head>
 
 <body>
+    <div class="wrapper">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container navbar-container">
+                <a class="navbar-brand" href="/">
 
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container navbar-container">
-            <a class="navbar-brand" href="/">
+                    <img src="/image/download/uploads/logos/AA.png" alt="Logo" srcset="" class="header-logo">
+                </a>
 
-                <img src="/image/download/uploads/logos/aa.png" alt="Logo" srcset="" class="header-logo">
-            </a>
-
-            <!-- Categories Menu -->
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="../products">All Products</a>
-                </li>
-                <li class="nav-item">
-                    <div class="dropdown">
-                        <a class="nav-link dropdown-toggle" type="link">
-                            Categories
-                        </a>
-                        <div class="dropdown-menu border-0 shadow-sm text-center">
-                            {% for category in categories %}
-                            <a class="dropdown-item" href="/products?category={{category.id}}">{{ category }}</a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </li>
-            </ul>
-
-            <div class="navbar-nav">
-                <!-- Add username if logged in  -->
-                {% if request.session.customer %}
-                <div class="m-2 text-capitalize">{{request.session.customer}}</div>
-                <form method="post" action="{% url 'logoutUser' %}">
-                    {% csrf_token %}
+                <!-- Categories Menu -->
+                <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <input type="submit" value="Logout" class="nav-link link-danger">
+                        <a class="nav-link" href="../products">All Products</a>
                     </li>
-                </form>
-                {% else %}
-                <li class="nav-item">
-                    <a href="{% url 'loginUser' %}" class="nav-link">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'signupUser' %}" class="nav-link">Sign Up</a>
-                </li>
-                {% endif %}
+                    <li class="nav-item">
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle" type="link">
+                                Categories
+                            </a>
+                            <div class="dropdown-menu border-0 shadow-sm text-center">
+                                {% for category in categories %}
+                                <a class="dropdown-item" href="/products?category={{category.id}}">{{ category }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </li>
+                </ul>
 
-                <form class="form-inline">
-                    <input class="form-control mr-2" type="text" placeholder="Search" id="navbar-search"
-                        onkeyup="searchProducts()">
-                </form>
-                <a class="nav-item nav-link" href="{% url 'view_wishlist' %}">
-                    <i class="fa-regular fa-heart"></i>
-                </a>
-                <a class="nav-item nav-link" href="{% url 'view_cart' %}">
-                    <i class="fa-brands fa-opencart"></i>
-                </a>
+                <div class="navbar-nav">
+                    <!-- Add username if logged in  -->
+                    {% if request.session.customer %}
+                    <div class="m-2 text-capitalize">{{request.session.customer}}</div>
+                    <form method="post" action="{% url 'logoutUser' %}">
+                        {% csrf_token %}
+                        <li class="nav-item">
+                            <input type="submit" value="Logout" class="nav-link link-danger">
+                        </li>
+                    </form>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'loginUser' %}" class="nav-link">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'signupUser' %}" class="nav-link">Sign Up</a>
+                    </li>
+                    {% endif %}
+
+                    <form class="form-inline">
+                        <input class="form-control mr-2" type="text" placeholder="Search" id="navbar-search"
+                            onkeyup="searchProducts()">
+                    </form>
+                    <a class="nav-item nav-link" href="{% url 'view_wishlist' %}">
+                        <i class="fa-regular fa-heart"></i>
+                    </a>
+                    <a class="nav-item nav-link" href="{% url 'view_cart' %}">
+                        <i class="fa-brands fa-opencart"></i>
+                    </a>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    {% block content %}
-    {% endblock %}
+        {% block content %}
+        {% endblock %}
+    </div>
     <footer class="bg-dark text-white py-3 footer">
         <div class="container">
             <p>&copy; 2023 My E-Commerce Store</p>
