@@ -15,30 +15,9 @@ function searchProducts(e) {
         }
     });
 }
-// document.addEventListener("DOMContentLoaded", function () {
-//     var productListContainer = document.getElementById("product-list-container");
-//     productListContainer.addEventListener("click", function (event) {
-//         if (event.target.tagName == "I") {
-//             if (event.target.parentElement.classList.contains("add-to-wishlist")) {
-//                 var productID = event.target.parentElement.getAttribute("data-product-id");
-//                 addToWishlist(productID, event.target.parentElement);
-//             } else if (event.target.parentElement.classList.contains("remove-from-wishlist")) {
-//                 var productID = event.target.parentElement.getAttribute("data-product-id");
-//                 removeFromWishlist(productID, event.target.parentElement);
-//             }
-//         } else if (event.target.tagName == "BUTTON") {
-//             if (event.target.classList.contains("add-to-wishlist")) {
-//                 var productID = event.target.getAttribute("data-product-id");
-//                 addToWishlist(productID, event.target);
-//             } else if (event.target.classList.contains("remove-from-wishlist")) {
-//                 var productID = event.target.getAttribute("data-product-id");
-//                 removeFromWishlist(productID, event.target);
-//             }
-//         }
-//     });
-// });
+
 document.addEventListener("DOMContentLoaded", function () {
-    var productListContainer = document.getElementById("product-list-container");
+    var productListContainer = document.getElementById("wishlist-container");
     productListContainer.addEventListener("click", function (event) {
         var target = event.target;
         var button = target;
@@ -57,21 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
-
-// document.addEventListener("DOMContentLoaded", function () {
-//     var addToWishlistButtons = document.querySelectorAll(".add-to-wishlist");
-
-//     addToWishlistButtons.forEach(function (button) {
-//         button.addEventListener("click", function () {
-//             var productID = button.getAttribute("data-product-id");
-//             addToWishlist(productID, button);
-//         });
-//     });
-// });
-
 function addToWishlist(productID, button) {
-    fetch(`add_to_wishlist/${productID}/`, {
+    fetch(`/add_to_wishlist/${productID}/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -90,10 +56,17 @@ function addToWishlist(productID, button) {
         .then(function (data) {
             if (data.success) {
                 // Update the UI to reflect the change in the wishlist
-                button.classList = "remove-from-wishlist"
-                var heartIcon = button.querySelector("i");
-                heartIcon.classList.remove("fa-regular");
-                heartIcon.classList.add("fa-solid");
+                if (button.id == "productDetailWishlist") {
+                    button.classList.remove("add-to-wishlist")
+                    button.classList.add("remove-from-wishlist")
+                    button.textContent = "Remove From Wishlist"
+                } else {
+
+                    button.classList = "remove-from-wishlist"
+                    var heartIcon = button.querySelector("i");
+                    heartIcon.classList.remove("fa-regular");
+                    heartIcon.classList.add("fa-solid");
+                }
             } else {
                 alert("Failed to add product to wishlist.");
             }
@@ -113,20 +86,8 @@ function getCookie(name) {
     return "";
 }
 
-
-// document.addEventListener("DOMContentLoaded", function () {
-//     var removeFromWishlistButtons = document.querySelectorAll(".remove-from-wishlist");
-
-//     removeFromWishlistButtons.forEach(function (button) {
-//         button.addEventListener("click", function () {
-//             var productID = button.getAttribute("data-product-id");
-//             removeFromWishlist(productID, button);
-//         });
-//     });
-// });
-
 function removeFromWishlist(productID, button) {
-    fetch(`remove_from_wishlist/${productID}/`, {
+    fetch(`/remove_from_wishlist/${productID}/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -145,10 +106,17 @@ function removeFromWishlist(productID, button) {
         .then(function (data) {
             if (data.success) {
                 // Update the UI to reflect the removal from the wishlist
-                button.classList = "add-to-wishlist"
-                var heartIcon = button.querySelector("i");
-                heartIcon.classList.remove("fa-solid");
-                heartIcon.classList.add("fa-regular");
+                if (button.id == "productDetailWishlist") {
+                    button.classList.add("add-to-wishlist")
+                    button.classList.remove("remove-from-wishlist")
+                    button.textContent = "Add To Wishlist"
+                    // alert("F to wishlist")
+                } else {
+                    button.classList = "add-to-wishlist"
+                    var heartIcon = button.querySelector("i");
+                    heartIcon.classList.remove("fa-solid");
+                    heartIcon.classList.add("fa-regular");
+                }
             } else {
                 alert("Failed to remove product from wishlist.");
             }
@@ -156,4 +124,40 @@ function removeFromWishlist(productID, button) {
         .catch(function (error) {
             console.error("Fetch error:", error);
         });
+}
+
+let slideIndex = 1;
+
+document.addEventListener("DOMContentLoaded", function () {
+    showSlides(slideIndex)
+})
+
+// Next/previous controls
+function plusSlides(n) {
+    showSlides(slideIndex += n);
+}
+
+// Thumbnail image controls
+function currentSlide(n) {
+    showSlides(slideIndex = n);
+}
+
+function showSlides(n) {
+    let i;
+    let slides = document.getElementsByClassName("mySlides");
+    let dots = document.getElementsByClassName("demo");
+    if (n > slides.length) {
+        slideIndex = 1
+    }
+    if (n < 1) {
+        slideIndex = slides.length
+    }
+    for (i = 0; i < slides.length; i++) {
+        slides[i].style.display = "none";
+    }
+    for (i = 0; i < dots.length; i++) {
+        dots[i].className = dots[i].className.replace(" active", "");
+    }
+    slides[slideIndex - 1].style.display = "block";
+    dots[slideIndex - 1].className += " active";
 }

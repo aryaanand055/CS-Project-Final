@@ -3,14 +3,14 @@
 {% block title %}Your Cart{% endblock %}
 
 {% block content %}
-<div class="container w-75 m-auto mt-5 mb-5">
+<div class="container w-75 m-auto mt-5 mb-5 ">
     <h1>Your Cart</h1>
 
     {% if cart_items %}
     <form method="post" action="{% url 'update_cart' %}">
         {% csrf_token %}
-        <table class="table">
-            <thead>
+        <table class="table text-center">
+            <thead class="">
                 <tr>
                     <th>Product</th>
                     <th>Quantity</th>
@@ -24,7 +24,7 @@
                 <tr>
                     <td>{{ cart_item.product.name }}</td>
                     <td>
-                        <div class="input-group w-25">
+                        <div class="input-group m-auto">
                             <span class="input-group-btn">
                                 <button type="button" class="btn btn-default btn-number minus"
                                     data-field="quantity_{{ cart_item.id }}">
@@ -32,7 +32,8 @@
                                 </button>
                             </span>
                             <input type="text" name="quantity_{{ cart_item.id }}" value="{{ cart_item.quantity }}"
-                                class="form-control input-number border-0 text-center" min="1">
+                                class="form-control form-control-sm input-number border-0 text-center " min="1"
+                                style="width: 20px;">
                             <span class="input-group-btn">
                                 <button type="button" class="btn btn-default btn-number plus"
                                     data-field="quantity_{{ cart_item.id }}">
@@ -42,8 +43,8 @@
                         </div>
 
                     </td>
-                    <td>${{ cart_item.product.price }}</td>
-                    <td>${{ cart_item.product.price|mul:cart_item.quantity }}</td>
+                    <td>₹{{ cart_item.product.price }}</td>
+                    <td>₹{{ cart_item.product.price|mul:cart_item.quantity }}</td>
                     <td>
                         <a href="{% url 'remove_from_cart' cart_item.id %}" class="link-danger">Remove</a>
                     </td>
@@ -52,18 +53,19 @@
             </tbody>
         </table>
         <div>
-            <p class=""><b>Total Price:</b> ${{ total_price }}</p>
+            <p class=""><b>Total Price:</b> ₹{{ total_price }}</p>
         </div>
+        <span class="opacity-50">Remember to update cart if u change any quantities</span><br><br>
         <button type="submit" class="btn btn-primary">Update Cart</button>
+        <a href="{% url 'empty_cart' %}" class="btn btn-secondary">Empty Cart</a>
+        <a href="{% url 'checkout' %}" class="btn btn-secondary">Enquire best price</a>
     </form>
-    <a href="{% url 'empty_cart' %}" class="btn btn-secondary">Empty Cart</a>
-    <a href="#" class="btn btn-secondary">Enquire best price</a>
+
     {% else %}
     <p>Your cart is empty.</p>
     {% endif %}
 </div>
 <script>
-    // Add event listeners to the plus and minus buttons
     document.querySelectorAll('.btn-number').forEach(function (button) {
         button.addEventListener('click', function (e) {
             e.preventDefault();

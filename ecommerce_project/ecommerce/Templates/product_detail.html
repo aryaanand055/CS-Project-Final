@@ -7,9 +7,30 @@
 
 
 <section class="product-details d-flex flex-row justify-content-around p-3 w-75">
-    <img src=" {{ product.image.url }}" alt="{{ product.name }}" class="img-fluid product-image rounded-5 w-50">
-    <div class="product-info w-50">
-        <!-- If statement in Django template -->
+
+    {% if images.count > 1 %}
+    <div class="container w-50 m-auto">
+        {% for image in images %}
+        <div class="mySlides w-100">
+            <img src="{{ image.image.url }}" alt="{{ product.name }}" class="img-fluid product-image rounded-5 mb-3">
+        </div>
+        {% endfor %}
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+        <div class="row">
+            {% for image in images %}
+            <div class="column">
+                <img class="demo cursor rounded" src="{{ image.image.url }}" style="width:100%" alt="{{ product.name }}"
+                    onclick="currentSlide('{{ forloop.counter }}')">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <img src="{{ images.0.image.url }}" alt="{{ product.name }}" class="img-fluid product-image rounded-5 w-50">
+    {% endif %}
+
+    <div class="product-info w-50" id="wishlist-container">
         {% if product.tagline %}
         <h4 class="text-danger product-tagline">{{ product.tagline }}</h4>
         {% endif %}
@@ -34,8 +55,17 @@
                     <span class="fa fa-plus plus"></span></a>
             </div>
             {% endif %}
-
-            <a href="" class="btn btn-outline-dark rounded-5 p-3 m-2 w-100">Add to Wishlist</a>
+            {% if product.isInWishlist%}
+            <button class="remove-from-wishlist btn btn-outline-dark rounded-5 p-3 m-2 w-100"
+                data-product-id="{{ product.id }}" id="productDetailWishlist">
+                Remove from Wishlist
+            </button>
+            {% else %}
+            <button class="add-to-wishlist btn btn-outline-dark rounded-5 p-3 m-2 w-100"
+                data-product-id="{{ product.id }}" id="productDetailWishlist">
+                Add to Wishlist
+            </button>
+            {% endif %}
         </div>
     </div>
 </section>

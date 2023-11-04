@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Checkout Request</title>
+</head>
+
+<body>
+    <h2>Checkout Request</h2>
+    <p><strong>User Name:</strong> {{ username }}</p>
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Email:</strong> {{ email }}</p>
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total Price</th>
+        </tr>
+        {{ table_rows | safe }}
+    </table>
+</body>
+
+</html>

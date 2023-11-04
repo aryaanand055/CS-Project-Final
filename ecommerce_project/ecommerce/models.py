@@ -1,4 +1,7 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.db import models
 
 # Create your models here.
 class Category(models.Model):
@@ -40,14 +43,26 @@ class Customer(models.Model):
         return False
     
 
+class ProductImage(models.Model):
+    product = models.ForeignKey('Products', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='uploads/products/')
+    def __str__(self):
+        return f'{self.product.name} - {self.image.name.split("/")[2]}'
+
+@receiver(post_save, sender=ProductImage)
+def associate_image_with_product(sender, instance, created, **kwargs):
+    if created:
+        instance.product.images.add(instance)
+
 class Products(models.Model): 
     name = models.CharField(max_length=60) 
     price = models.IntegerField(default=0) 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1) 
+    brand = models.CharField(max_length=100, blank=True)
     tagline = models.CharField(max_length=50, null=True, blank=True)
     description = models.CharField( 
-        max_length=250, default='', blank=True, null=True) 
-    image = models.ImageField(upload_to='uploads/products/') 
+        max_length=500, default='', blank=True, null=True) 
+    images = models.ManyToManyField(ProductImage, blank=True)
   
     @staticmethod
     def get_products_by_id(ids): 
@@ -71,6 +86,7 @@ class Products(models.Model):
     def __str__(self):
         return self.name
     
+
 
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)

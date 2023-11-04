@@ -129,3 +129,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
 MEDIA_URL = "/image/download/"
 MEDIA_ROOT = BASE_DIR
+
+# Mail
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Replace with your SMTP server address
+EMAIL_PORT = 587  # Replace with the appropriate port (587 for TLS)
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False  # Set to False for TLS
+EMAIL_HOST_USER = 'aryaanand053@gmail.com'  # Replace with your email
+EMAIL_HOST_PASSWORD = 'vmbx cyyt uorw rbsx'  # Replace with your email password
+DEFAULT_FROM_EMAIL = 'aryaanand053@gmail.com'  # Replace with your email

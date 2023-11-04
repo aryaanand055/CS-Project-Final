@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Customer, Wishlist, CartProduct, Cart, Category, Products
+from .models import Customer, Wishlist, CartProduct, Cart, Category, Products, ProductImage
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from .forms import CustomUserCreationForm
@@ -7,6 +7,10 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import F
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.core.mail import send_mail
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 def home(req):
     return render(req, "home.html")
@@ -19,8 +23,8 @@ def products(req):
     else:
         productsList = Products.get_all_products()
     
-    sort_criteria = req.GET.get('sort', 'name')  # Default to sorting by name
-    sort_order = req.GET.get('order', 'asc')  # Default to ascending order    
+    sort_criteria = req.GET.get('sort', 'id')  # Default to sorting by id
+    sort_order = req.GET.get('order', 'desc')  # Default to ascending desc    #So that new products can be displayed at the first
     if sort_criteria == 'name':
         productsList = productsList.order_by('name' if sort_order == 'asc' else '-name')
     elif sort_criteria == 'price':
@@ -34,14 +38,20 @@ def products(req):
         wishlist, created = Wishlist.objects.get_or_create(user=customer)
         wishlist_products = wishlist.get_wishlist_items()
         for product in productsList:
+            first_image = product.images.first()
+            product.image = first_image.image if first_image else None
             product.isInWishlist = product in wishlist_products
     else:
         for product in productsList:
+            first_image = product.images.first()
+            product.image = first_image.image if first_image else None
             product.isInWishlist = False
+
     return render(req, 'products.html', {'products_list': productsList, "categories": categories})
 
 def product_detail(req, product_id):
     product = Products.get_product_by_id(product_id)
+    productImages = product.images.all()
     categories = Category.get_all_categories()
     cart_quantity = 0
     user = req.session.get("customer_id")
@@ -51,9 +61,14 @@ def product_detail(req, product_id):
         cart_quantity1 = CartProduct.objects.filter(cart=cart, product=product)
         if len(cart_quantity1) == 0:
             cart_quantity = 0
+        
         else:
             cart_quantity = cart_quantity1[0].quantity
-    return render(req, "product_detail.html", {"product": product, "categories": categories, "cart_quantity": cart_quantity})
+    
+    wishlist, created = Wishlist.objects.get_or_create(user=customer)
+    wishlist_products = wishlist.get_wishlist_items()
+    product.isInWishlist = product in wishlist_products
+    return render(req, "product_detail.html", {"product": product, "categories": categories, "cart_quantity": cart_quantity, "images": productImages})
 
 def signupUser(req):
     if req.method == 'POST':
@@ -105,14 +120,18 @@ def view_cart(request):
     total_price = sum(item.product.price * item.quantity for item in cart_items)
     
     return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items, 'total_price': total_price})
+
 def view_wishlist(request):
     cust = request.session.get("customer_id")
     if cust:
         customer = Customer.objects.get(id=cust)
-        # wishlist = Wishlist.get()
+        
         wishlist, created = Wishlist.objects.get_or_create(user=customer)
         products = wishlist.get_wishlist_items()
-        print(products)
+        for product in products:
+            first_image = product.images.first()
+            product.image = first_image.image if first_image else None
+        
     else:
         products = [] 
     return render(request, 'wishlist.html', { 'wishlist_items': products})
@@ -201,3 +220,48 @@ def remove_from_wishlist(request, product_id):
     wishlist.product.remove(product)
     wishlist.save()
     return JsonResponse({'success': True})
+
+
+# Checout
+
+def checkout(request):
+    user = request.session.get("customer_id")
+    customer = Customer.objects.get(id=user)
+    name = customer.user_name  # Replace with the actual attribute name
+    fname = customer.first_name  # Replace with the actual attribute name
+    lname = customer.last_name  # Replace with the actual attribute name
+    email = customer.email  # Replace with the actual attribute email
+
+    products_and_quantities = []
+    cart = Cart.objects.get(customer = user)
+    cart_items = CartProduct.objects.filter(cart=cart)
+    for cart_item in cart_items:
+        product = cart_item.product
+        quantity = cart_item.quantity
+        price = cart_item.product.price
+        totalProductPrice = price * quantity
+        products_and_quantities.append((product.name, quantity, price, totalProductPrice))
+    table_rows = ""
+    for item in products_and_quantities:
+        product, quantity, price, totalProductPrice = item
+        table_rows += f"<tr><td>{product}</td><td>{quantity}</td><td>{price}</td><td>{totalProductPrice}</td></tr>"
+
+# Create an HTML email message
+    html_message = render_to_string('checkout_email.html', {
+        'username': name,
+        'name': fname + " " +lname,
+        'email': email,
+        'table_rows': table_rows,
+    })
+
+    subject = 'Checkout Request'
+    from_email = 'aryaanand053@gmail.com'  # Use your provided email
+    recipient_email = 'aryaanand050@gmail.com'
+
+# Send the email with both HTML and plain text versions
+    send_mail(subject, '', from_email, [recipient_email], html_message=html_message)
+    # print(products_and_quantities)
+    # Clear Cart
+    empty_cart(request)
+
+    return render(request, 'checkout_success.html', {"products_list": products_and_quantities})

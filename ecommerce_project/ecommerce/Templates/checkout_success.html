@@ -1,0 +1,37 @@
+{% extends "master.html" %}
+
+{% block content %}
+<div class="container mt-3">
+
+    <h1>Checkout Success</h1>
+    <p>Your enquiry has been sent. The seller will contact you soon.</p>
+    <p>For more details or assistance, please contact us:</p>
+    <p>Contact Information: <a href="mailto:aryaanand050@gmail.com">aryaanand050@gmail.com</a></p>
+    <br>
+    <h2>Summary</h2>
+
+    <table class="table caption-top table-striped m-4 text-center">
+        <caption>Order Details</caption>
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Product</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products_list %}
+            <tr>
+                <th scope="row">{{ forloop.counter}}</th>
+                <td>{{product.0}}</td>
+                <td>{{product.1}}</td>
+                <td>{{product.2}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+</div>
+{% endblock %}
