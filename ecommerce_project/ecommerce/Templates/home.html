@@ -1,29 +1,25 @@
 {% extends "master.html" %}
 
 {% block title %}E-Commerce Store{% endblock %}
-
 {% block content %}
-<section class="header-section">
-    <div class="container">
-        <h1>Welcome to the E-commerce store!</h1>
+<section class="header-section d-flex align-items-center justify-content-center vh-100">
+    <div class="container text-center">
+        <h1>Welcome to my E-commerce store!</h1>
         <p>This is a simple e-commerce website built with Python and Django.</p>
         <a href="{% url 'products' %}" class="btn btn-primary my-2">Go Shopping &raquo;</a>
     </div>
 </section>
 
-</section>
 <section class="container my-5">
     <div class="row text-center">
 
-        <div class="col-lg-12 card shadow m-2">
-            <h2 class="card-header">Discover our Products</h2>
-            <a href="{% url 'products' %}" class="btn btn-secondary my-2 w-25 m-auto mt-4">Let's Discover
-                &raquo;</a>
-
-            <p class="card-body">Explore a wide range of products from various categories.</p>
+        <div class="col-lg-5 col-sm-12 card  m-auto p-3">
+            <h2 class="card-header bg-light-subtle">Discover our Products</h2>
+            <p class="card-body mt-4">Explore a wide range of products from various categories.</p>
+            <a href="{% url 'products' %}" class="btn btn-secondary">Let's Discover &raquo;</a>
         </div>
-        <div class="col-lg-12 card shadow m-2">
-            <h2 class="card-header">Contact Us</h2>
+        <div class=" col-lg-5 col-sm-12 card  m-auto p-3">
+            <h2 class="card-header bg-light-subtle">Contact Us</h2>
             <p class="card-body">If you have any questions or need assistance, feel free to contact us:</p>
             <ul>
                 Email: <a href="mailto:aryaanand053@gmail.com">aryaanand053@gmail.com</a><br>
@@ -31,10 +27,76 @@
                 <!-- Add more contact options as needed -->
             </ul>
         </div>
+        <div class="col-10 m-auto card text-start p-3 mt-4">
+            <h2>Why Choose Us?</h2>
+            <p>Here, we strive to provide the best shopping experience for our customers. Here's why
+                you
+                should choose us:</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Wide selection of high-quality products</li>
+                <li class="list-group-item">Competitive prices that fit any budget</li>
+                <li class="list-group-item">Secure and convenient online shopping</li>
+                <li class="list-group-item">Fast and reliable delivery</li>
+                <li class="list-group-item">Excellent customer support</li>
+            </ul>
+        </div>
     </div>
 </section>
-<section class="container">
-    {% lorem 5000 w %}
 
+
+<section class="container p-sm-5 text-capitalize">
+    <p class="lead text-center text-lg-start">
+        Welcome to our thriving online marketplace, where shopping becomes an exhilarating experience tailored just for
+        you.
+        At our store, we redefine convenience, quality, and style, bringing you an extensive selection of products that
+        cater to your every need.
+    </p>
+
+    <div class="row">
+        <div class="col-md-10 m-auto offset-md-2">
+            <div class="alert alert-info" role="alert">
+                <p class="mb-0">
+                    Discover the latest trends in fashion, from chic apparel to statement accessories that effortlessly
+                    elevate
+                    your wardrobe. Our curated collection boasts a fusion of timeless classics and cutting-edge designs,
+                    ensuring that every purchase reflects your unique style. Whether you're a fashion maven or seeking
+                    everyday
+                    essentials, our diverse range accommodates all tastes and preferences.
+                </p>
+                <hr>
+                <p class="mb-0">
+                    Embark on a journey through our tech-savvy gadgets and innovative electronics, where form meets
+                    function.
+                    Stay ahead of the curve with the latest gadgets, home appliances, and electronics that seamlessly
+                    integrate
+                    into your modern lifestyle. From smart home solutions to powerful computing devices, we provide the
+                    tools to
+                    enhance your daily routine.
+                </p>
+                <hr>
+                <!-- Add more content sections as needed -->
+                <p class="mb-0">
+                    As your trusted online marketplace, we prioritize your satisfaction. Our user-friendly interface
+                    ensures a
+                    seamless shopping experience, backed by secure transactions and prompt deliveries. Enjoy exclusive
+                    deals,
+                    discounts, and personalized recommendations, making your journey with us both rewarding and
+                    delightful.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-success mt-4 mb-4" role="alert">
+        <p class="">
+            Join our community of savvy shoppers who trust us to deliver quality, style, and
+            innovation
+            to their doorsteps. Your satisfaction is our commitment, and we look forward to being your preferred
+            destination
+            for all things extraordinary. Happy shopping!
+        </p>
+    </div>
 </section>
+
+
 {% endblock %}

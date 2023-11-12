@@ -1,4 +1,8 @@
-console.log("Hello World!!")
+document.addEventListener("DOMContentLoaded", function () {
+    addtoWishlist1() 
+    showSlides1()
+    deleteProfile()
+});
 
 function searchProducts(e) {
     let input = document.getElementById("navbar-search")
@@ -15,26 +19,22 @@ function searchProducts(e) {
         }
     });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
+function addtoWishlist1() {
     var productListContainer = document.getElementById("wishlist-container");
     productListContainer.addEventListener("click", function (event) {
         var target = event.target;
         var button = target;
-
         if (!target.classList.contains("add-to-wishlist") && !target.classList.contains("remove-from-wishlist")) {
             button = target.parentElement;
         }
-
         var productID = button.getAttribute("data-product-id");
-
         if (button.classList.contains("add-to-wishlist")) {
             addToWishlist(productID, button);
         } else if (button.classList.contains("remove-from-wishlist")) {
             removeFromWishlist(productID, button);
         }
-    });
-});
+    });    
+}
 
 function addToWishlist(productID, button) {
     fetch(`/add_to_wishlist/${productID}/`, {
@@ -55,7 +55,6 @@ function addToWishlist(productID, button) {
         })
         .then(function (data) {
             if (data.success) {
-                // Update the UI to reflect the change in the wishlist
                 if (button.id == "productDetailWishlist") {
                     button.classList.remove("add-to-wishlist")
                     button.classList.add("remove-from-wishlist")
@@ -68,11 +67,15 @@ function addToWishlist(productID, button) {
                     heartIcon.classList.add("fa-solid");
                 }
             } else {
-                alert("Failed to add product to wishlist.");
+                if (data.msg == "User not logged in") {
+                    if (confirm("You will have to login before that...")){
+                        open("/login", "_self")
+                    }
+                }
             }
         })
         .catch(function (error) {
-            console.error("Fetch error:", error);
+            console.error("Fetch error:", error.msg);
         });
 }
 
@@ -105,17 +108,26 @@ function removeFromWishlist(productID, button) {
         })
         .then(function (data) {
             if (data.success) {
-                // Update the UI to reflect the removal from the wishlist
-                if (button.id == "productDetailWishlist") {
-                    button.classList.add("add-to-wishlist")
-                    button.classList.remove("remove-from-wishlist")
-                    button.textContent = "Add To Wishlist"
-                    // alert("F to wishlist")
+                if (button.classList.contains("wishlistCard")) {
+                    if (button.parentElement.parentElement.parentElement.parentElement.childElementCount == 1) {
+                        para = document.createElement("p")
+                        para.textContent = "Your wishlist is empty."
+                        button.parentElement.parentElement.parentElement.parentElement.appendChild(para)
+                        button.parentElement.parentElement.parentElement.remove()
+                    } else {
+                        button.parentElement.parentElement.parentElement.remove()
+                    }
                 } else {
-                    button.classList = "add-to-wishlist"
-                    var heartIcon = button.querySelector("i");
-                    heartIcon.classList.remove("fa-solid");
-                    heartIcon.classList.add("fa-regular");
+                    if (button.id == "productDetailWishlist") {
+                        button.classList.add("add-to-wishlist")
+                        button.classList.remove("remove-from-wishlist")
+                        button.textContent = "Add To Wishlist"
+                    } else {
+                        button.classList = "add-to-wishlist"
+                        var heartIcon = button.querySelector("i");
+                        heartIcon.classList.remove("fa-solid");
+                        heartIcon.classList.add("fa-regular");
+                    }
                 }
             } else {
                 alert("Failed to remove product from wishlist.");
@@ -125,39 +137,69 @@ function removeFromWishlist(productID, button) {
             console.error("Fetch error:", error);
         });
 }
-
 let slideIndex = 1;
-
-document.addEventListener("DOMContentLoaded", function () {
+function showSlides1() {
     showSlides(slideIndex)
-})
+}
 
-// Next/previous controls
 function plusSlides(n) {
     showSlides(slideIndex += n);
 }
 
-// Thumbnail image controls
 function currentSlide(n) {
     showSlides(slideIndex = n);
 }
 
 function showSlides(n) {
-    let i;
-    let slides = document.getElementsByClassName("mySlides");
-    let dots = document.getElementsByClassName("demo");
-    if (n > slides.length) {
-        slideIndex = 1
+    if (window.location.pathname.search("/products/") != -1) {
+        let i;
+        let slides = document.getElementsByClassName("mySlides");
+        let dots = document.getElementsByClassName("demo");
+        if (n > slides.length) {
+            slideIndex = 1
+        }
+        if (n < 1) {
+            slideIndex = slides.length
+        }
+        for (i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+        for (i = 0; i < dots.length; i++) {
+            dots[i].className = dots[i].className.replace(" active", "");
+        }
+        slides[slideIndex - 1].style.display = "block";
+        dots[slideIndex - 1].className += " active";
     }
-    if (n < 1) {
-        slideIndex = slides.length
-    }
-    for (i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
-    }
-    for (i = 0; i < dots.length; i++) {
-        dots[i].className = dots[i].className.replace(" active", "");
-    }
-    slides[slideIndex - 1].style.display = "block";
-    dots[slideIndex - 1].className += " active";
 }
+
+function deleteProfile() {
+    if (window.location.pathname.search("/profile/") != -1) {
+
+    
+        document.getElementById("deleteProfileBtn").addEventListener("click", () => {
+            let psswd = prompt("Enter password to delete user");
+            fetch('/deleteUser/', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: `password=${encodeURIComponent(psswd)}`,
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Password is incorrect");
+                }
+            }).then(data => {
+                console.log(data);
+                alert("User deleted successfully");
+                window.location.href = "/login";
+            }).catch(error => {
+                console.error(error);
+                alert("Cannot delete account. Password is incorrect");
+            });
+        });
+    }
+}
+     

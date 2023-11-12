@@ -2,15 +2,17 @@ from django.shortcuts import render, redirect
 from .models import Customer, Wishlist, CartProduct, Cart, Category, Products, ProductImage
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, CustomUserLogin
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import F
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
 from django.core.mail import send_mail
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
 
 def home(req):
     return render(req, "home.html")
@@ -59,15 +61,16 @@ def product_detail(req, product_id):
         customer = Customer.objects.get(id=user)
         cart, created = Cart.objects.get_or_create(customer=customer)
         cart_quantity1 = CartProduct.objects.filter(cart=cart, product=product)
+        wishlist, created = Wishlist.objects.get_or_create(user=customer)
+        wishlist_products = wishlist.get_wishlist_items()
+        product.isInWishlist = product in wishlist_products
         if len(cart_quantity1) == 0:
             cart_quantity = 0
         
         else:
             cart_quantity = cart_quantity1[0].quantity
     
-    wishlist, created = Wishlist.objects.get_or_create(user=customer)
-    wishlist_products = wishlist.get_wishlist_items()
-    product.isInWishlist = product in wishlist_products
+    
     return render(req, "product_detail.html", {"product": product, "categories": categories, "cart_quantity": cart_quantity, "images": productImages})
 
 def signupUser(req):
@@ -87,13 +90,11 @@ def tac(req):
     return render(req, 'tac.html')
 
 def loginUser(request):
-    error_message = None
     if request.method == 'POST':
-        print(321123)
+        form = CustomUserLogin(request.POST)
         email = request.POST.get('email')
         password = request.POST.get('password')
-        customer = Customer.get_customer_by_email(email)
-        print(email, password, customer)
+        customer = Customer.objects.filter(email=email).first()
         if customer:
             if password == customer.password:
                 print("Check successful")
@@ -101,21 +102,20 @@ def loginUser(request):
                 request.session['customer_id'] = customer.id
                 return redirect('products')
             else:
-                print("invalud passwprd")
-                error_message = 'Invalid password'
+                print("Password incorrect")
+                messages.warning(request, "Invalid Password. Try again with correct credentials.")
         else:
-            error_message = 'Invalid email'
-
-    return render(request, 'login.html', {'error': error_message, 'form': AuthenticationForm()})
+            print("Email not found")
+            messages.warning(request, "Email not found")
+    return render(request, 'login.html', {'form': CustomUserLogin()})
 
 def logoutUser(request):
     request.session.clear()
     return redirect('loginUser')
 
-# @login_required
 def view_cart(request):
     cust = request.session.get("customer_id")
-    cart = Cart.objects.get(customer = cust)
+    cart, created = Cart.objects.get_or_create(customer_id=cust)
     cart_items = CartProduct.objects.filter(cart=cart)
     total_price = sum(item.product.price * item.quantity for item in cart_items)
     
@@ -199,17 +199,17 @@ def remove_from_cart(request, cart_item_id):
         pass
     return redirect('view_cart')
 
-from django.http import JsonResponse
-
 def add_to_wishlist(request, product_id):
-    user_id = request.session.get("customer_id")  # Replace with the actual user's ID
-    print("product_id:", product_id)  # Replace with the actual product's ID
-    user = Customer.objects.get(id=user_id)
-    wishlist, created = Wishlist.objects.get_or_create(user=user)
-    product = Products.objects.get(id=product_id)
-    wishlist.product.add(product)
-    wishlist.save()
-    return JsonResponse({'success': True})
+    user_id = request.session.get("customer_id") 
+    if not user_id:
+        return JsonResponse({'success': False, 'msg': "User not logged in"})
+    else:
+        user = Customer.objects.get(id=user_id)
+        wishlist, created = Wishlist.objects.get_or_create(user=user)
+        product = Products.objects.get(id=product_id)
+        wishlist.product.add(product)
+        wishlist.save()
+        return JsonResponse({'success': True})
 
 def remove_from_wishlist(request, product_id):
     user_id = request.session.get("customer_id")  # Replace with the actual user's ID
@@ -221,9 +221,43 @@ def remove_from_wishlist(request, product_id):
     wishlist.save()
     return JsonResponse({'success': True})
 
+def profile(req):
+    customer_id = req.session.get('customer_id')
+    if req.method == "GET":
+        if customer_id:
+            customer = Customer.objects.filter(id=customer_id).first()
+            return render(req,'profile.html',{"user":customer})
+        else:
+            return redirect("loginUser")
+    else:
+        uname = req.POST.get('user_name')
+        fname = req.POST.get('first_name')
+        lname = req.POST.get('last_name')
+        email = req.POST.get('email')
+        # password = req.POST['password']
+        if Customer.objects.filter(user_name=uname).exclude(id=customer_id).exists():
+            messages.error(req, 'Username is already taken. Please choose a different username.')
+            return redirect('profile')
+        customer_id = req.session.get('customer_id')
+        customer = Customer.objects.filter(id=customer_id).update(user_name=uname,first_name = fname, last_name = lname, email=email)
+        messages.info(req,"Your Profile has been updated successfully!")
+        return redirect('profile')
 
-# Checout
+def deleteUser(req):
+    if req.method == 'POST':
+        pswd = req.POST.get('password')
+        customer_id = req.session.get('customer_id')
+        customer = Customer.objects.filter(id=customer_id).first()
+        if customer.password == pswd:
+            customer.delete()
+            req.session.clear()
+            return JsonResponse({"success": True, "msg": "User deleted successfully"})
+        else:
+            return JsonResponse({"success": False, "msg": "Password is incorrect"})
+    else:
+        return JsonResponse({"success": False, "msg": "Invalid request method"})    
 
+# Checkout
 def checkout(request):
     user = request.session.get("customer_id")
     customer = Customer.objects.get(id=user)
@@ -246,22 +280,16 @@ def checkout(request):
         product, quantity, price, totalProductPrice = item
         table_rows += f"<tr><td>{product}</td><td>{quantity}</td><td>{price}</td><td>{totalProductPrice}</td></tr>"
 
-# Create an HTML email message
     html_message = render_to_string('checkout_email.html', {
         'username': name,
         'name': fname + " " +lname,
         'email': email,
         'table_rows': table_rows,
     })
-
     subject = 'Checkout Request'
     from_email = 'aryaanand053@gmail.com'  # Use your provided email
     recipient_email = 'aryaanand050@gmail.com'
-
-# Send the email with both HTML and plain text versions
     send_mail(subject, '', from_email, [recipient_email], html_message=html_message)
-    # print(products_and_quantities)
-    # Clear Cart
     empty_cart(request)
 
     return render(request, 'checkout_success.html', {"products_list": products_and_quantities})
