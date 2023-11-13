@@ -80,7 +80,8 @@ footer .navbar-container {
 }
 
 .header-section {
-    background-image: url("/image/download/uploads/images/background4.jpg");
+
+    background-image: url("/image/download/uploads/images/background7.jpg");
     background-size: cover;
     background-position: center;
     color: #fff;
@@ -88,6 +89,31 @@ footer .navbar-container {
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+}
+
+.header-section-ligh {
+    margin-top: -60px;
+}
+
+.navbar-ligh {
+    background: transparent;
+    height: 60px;
+
+}
+
+.navbar-ligh .nav-link,
+.navbar-ligh span {
+    color: #fff;
+}
+
+.navbar-ligh input,
+.navbar-ligh input:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 0;
+}
+
+.navbar-ligh input::placeholder {
+    color: rgba(255, 255, 255, 1);
 }
 
 .container {
@@ -101,6 +127,7 @@ footer .navbar-container {
 .cursor {
     cursor: pointer;
 }
+
 .prev,
 .next {
     cursor: pointer;

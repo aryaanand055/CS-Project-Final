@@ -15,7 +15,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
 def home(req):
-    return render(req, "home.html")
+    return render(req, "home.html", {"navbarmode": "navbar-ligh", "logoInverted":"-inverted"})
 
 def products(req):
     categories = Category.get_all_categories()

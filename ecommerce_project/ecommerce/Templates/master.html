@@ -29,10 +29,11 @@
 
 <body>
     <div class="wrapper">
-        <nav class="navbar navbar-expand-lg navbar-light">
+        <nav class="navbar navbar-expand-lg navbar-light {% block navbarmode %}{% endblock %}">
             <div class="container navbar-container">
                 <a class="navbar-brand" href="/">
-                    <img src="/image/download/uploads/logos/AA.png" alt="Logo" srcset="" class="header-logo">
+                    <img src="/image/download/uploads/logos/AA{% block logoInverted %}{% endblock %}-rbg.png" alt="Logo"
+                        srcset="" class="header-logo">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNav"
                     aria-controls="collapseNav" aria-expanded="false" aria-label="Toggle navigation">
