@@ -22,6 +22,7 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('profile/', views.profile, name='profile'),
     path('deleteUser/', views.deleteUser, name='deleteUser'),
+    path('get_top_products/', views.get_top_products, name='get_top_products'),
 ]
 
 from django.conf import settings

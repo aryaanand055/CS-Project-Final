@@ -61,8 +61,10 @@
 
                     <div class="navbar-nav flex-row justify-content-center gap-4">
                         <form class="form-inline">
-                            <input class="form-control mr-2" type="text" placeholder="Search" id="navbar-search"
-                                onkeyup="searchProducts()">
+                            <input class="form-control mr-2 text-info" type="text" placeholder="Search"
+                                id="navbar-search" oninput="searchProducts()">
+                            <div id="search-dropdown" class="dropdown-menu" style="display: none;">
+                            </div>
                         </form>
                         {% if request.session.customer %}
                         <a href="{% url 'logoutUser' %}" class="nav-link link-danger" data-toggle="tooltip"

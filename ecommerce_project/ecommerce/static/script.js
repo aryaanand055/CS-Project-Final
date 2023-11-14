@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    addtoWishlist1() 
+    addtoWishlist1()
     showSlides1()
     deleteProfile()
 });
@@ -7,18 +7,75 @@ document.addEventListener("DOMContentLoaded", function () {
 function searchProducts(e) {
     let input = document.getElementById("navbar-search")
     let filter = input.value.toLowerCase()
-    let products = document.querySelectorAll(".product-small")
-    products.forEach(product => {
-        let productName = product.querySelector(".card-title").textContent.toLowerCase();
-        let productDesc = product.querySelector(".card-text").textContent.toLowerCase();
-        if (productName.indexOf(filter) > -1 || productDesc.indexOf(filter) > -1) {
-            product.style.display = "block"
-        } else {
-            product.style.display = "none"
+    if (window.location.pathname.startsWith("/products") != true) {
+        fetch("/get_top_products?filter=" + filter)
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and update the UI (e.g., display in a dropdown)
+                updateDropdown(data);
+            })
+            .catch(error => console.error("Error fetching top products:", error));
+    } else {
+        let products = document.querySelectorAll(".product-small")
+        products.forEach(product => {
+            let productName = product.querySelector(".card-title").textContent.toLowerCase();
+            let productDesc = product.querySelector(".card-text").textContent.toLowerCase();
+            if (productName.indexOf(filter) > -1 || productDesc.indexOf(filter) > -1) {
+                product.style.display = "block"
+            } else {
+                product.style.display = "none"
 
-        }
-    });
+            }
+        });
+    }
 }
+document.addEventListener("click", function (event) {
+    let dropdown = document.getElementById("search-dropdown");
+    let searchBar = document.getElementById("navbar-search");
+    if (!dropdown.contains(event.target) && !searchBar.contains(event.target)) {
+        dropdown.style.display = "none";
+    }
+});
+
+
+function updateDropdown(products) {
+    let dropdown = document.getElementById("search-dropdown");
+    if (!dropdown) {
+        console.error("Dropdown element not found");
+        return;
+    }
+
+    dropdown.innerHTML = "";
+    dropdown.style.maxWidth = document.getElementById("navbar-search").offsetWidth + "px";
+
+    if (products.length === 0) {
+        // Display a "No products found" message
+        let noProductsItem = document.createElement("div");
+        noProductsItem.classList = "dropdown-item text-truncate w-100 text-muted";
+        noProductsItem.innerText = "No products found";
+        dropdown.appendChild(noProductsItem);
+    } else {
+        // Display products in the dropdown
+        for (let i = 0; i < Math.min(5, products.length); i++) {
+            let product = products[i];
+            let dropdownItem = document.createElement("div");
+            dropdownItem.classList = "dropdown-item text-truncate w-100 min-width-search-bar";
+            let link = document.createElement("a");
+            link.classList = "link-offset-2 link-underline link-underline-opacity-0 text-secondary";
+            link.href = "/products/" + product["id"];
+            link.innerText = product.name;
+            dropdownItem.appendChild(link);
+            dropdownItem.addEventListener("click", function () {
+                window.location = "/products/" + product.id; // Adjust accordingly
+            });
+            dropdown.appendChild(dropdownItem);
+        }
+    }
+
+    dropdown.style.display = "block";
+}
+
+
 function addtoWishlist1() {
     var productListContainer = document.getElementById("wishlist-container");
     productListContainer.addEventListener("click", function (event) {
@@ -33,20 +90,20 @@ function addtoWishlist1() {
         } else if (button.classList.contains("remove-from-wishlist")) {
             removeFromWishlist(productID, button);
         }
-    });    
+    });
 }
 
 function addToWishlist(productID, button) {
     fetch(`/add_to_wishlist/${productID}/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken"),
-            },
-            body: JSON.stringify({
-                product_id: productID
-            }),
-        })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+            product_id: productID
+        }),
+    })
         .then(function (response) {
             if (response.ok) {
                 return response.json();
@@ -68,7 +125,7 @@ function addToWishlist(productID, button) {
                 }
             } else {
                 if (data.msg == "User not logged in") {
-                    if (confirm("You will have to login before that...")){
+                    if (confirm("You will have to login before that...")) {
                         open("/login", "_self")
                     }
                 }
@@ -91,15 +148,15 @@ function getCookie(name) {
 
 function removeFromWishlist(productID, button) {
     fetch(`/remove_from_wishlist/${productID}/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken"),
-            },
-            body: JSON.stringify({
-                product_id: productID
-            }),
-        })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+            product_id: productID
+        }),
+    })
         .then(function (response) {
             if (response.ok) {
                 return response.json();
@@ -175,7 +232,7 @@ function showSlides(n) {
 function deleteProfile() {
     if (window.location.pathname.search("/profile/") != -1) {
 
-    
+
         document.getElementById("deleteProfileBtn").addEventListener("click", () => {
             let psswd = prompt("Enter password to delete user");
             fetch('/deleteUser/', {
@@ -202,4 +259,3 @@ function deleteProfile() {
         });
     }
 }
-     

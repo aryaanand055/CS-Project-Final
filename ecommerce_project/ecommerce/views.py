@@ -14,6 +14,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
+def categories(request):
+    return {'categories': Category.get_all_categories()}
+
 def home(req):
     return render(req, "home.html", {"navbarmode": "navbar-ligh", "logoInverted":"-inverted"})
 
@@ -256,6 +259,13 @@ def deleteUser(req):
             return JsonResponse({"success": False, "msg": "Password is incorrect"})
     else:
         return JsonResponse({"success": False, "msg": "Invalid request method"})    
+
+
+def get_top_products(request):
+    filter_term = request.GET.get('filter', '')
+    top_products = Products.objects.filter(name__icontains=filter_term)[:5]
+    top_products_data = [{'id': product.id, 'name': product.name} for product in top_products]
+    return JsonResponse(top_products_data, safe=False)
 
 # Checkout
 def checkout(request):
