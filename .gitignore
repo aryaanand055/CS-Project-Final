@@ -8,3 +8,4 @@ env/
 *.log
 Pipfile.lock
 Pipfile
+.vscode/
