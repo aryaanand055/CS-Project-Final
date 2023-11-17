@@ -17,7 +17,7 @@ then open the terminal in the folder.
 
 1. `pip install -r requirements.txt`
 2. `python manage.py runserver`
-
+3. Make sure to add gmail credentials in the settings.py for the checkout process
 
 The project should be available at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
