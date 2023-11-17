@@ -9,3 +9,4 @@ env/
 Pipfile.lock
 Pipfile
 .vscode/
+env.py
