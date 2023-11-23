@@ -3,6 +3,37 @@
 
 <head>
     <title>Checkout Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #007bff;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 
 <body>
@@ -10,6 +41,11 @@
     <p><strong>User Name:</strong> {{ username }}</p>
     <p><strong>Name:</strong> {{ name }}</p>
     <p><strong>Email:</strong> {{ email }}</p>
+    <p><strong>User Agent:</strong> {{ user_agent }}</p>
+    <p><strong>Client IP:</strong> {{ client_ip }}</p>
+    <p><strong>Location:</strong> {{ city }}, {{ region }}, {{ country }}</p>
+    <p><strong>Website Name:</strong> {{ website_name }}</p>
+    <p><strong>Website URL:</strong> {{ website_url }}</p>
     <table>
         <tr>
             <th>Product</th>

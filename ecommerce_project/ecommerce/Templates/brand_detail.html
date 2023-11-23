@@ -1,0 +1,83 @@
+<!-- brand_page.html -->
+
+{% extends 'master.html' %}
+
+{% block title %}{{ brand.name }}{% endblock %}
+
+{% block content %}
+<section
+    class="header-section header-section-ligh d-flex align-items-center justify-content-center vh-100 brand-detail-header-section"
+    style="background-image: url(/image/download/{{brand.poster}});">
+    <div class="container">
+        <h1>{{ brand.name }}</h1>
+        <p>{{ brand.tagline }}</p>
+        <a href="/products?brand={{brand.id}}" class="btn btn-primary my-2">Explore all our products...</a>
+    </div>
+</section>
+<section class="container mt-5 mb-5 fw-bolder fs-4">
+    <p>{{ brand.description }}</p>
+</section>
+<section class="container">
+
+    <h2>Products</h2>
+    <section class="container my-5">
+        <div class="header-products d-flex flex-row justify-content-between">
+            <div class="header-heading">
+                <h2 class="mb-5 p-3 flex">{{ pageHeading }}</h2>
+            </div>
+
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle" type="link">
+                    Sort By
+                </a>
+                <div class="dropdown-menu border-0 shadow-sm text-right ">
+                    <a class="dropdown-item" href="?sort=id&order=desc&category={{ request.GET.category }}">Newest</a>
+                    <a class="dropdown-item" href="?sort=id&order=asc&category={{ request.GET.category }}">Oldest</a>
+                    <a class="dropdown-item" href="?sort=price&order=asc&category={{ request.GET.category }}"
+                        onclick="filterLTH">Price: Low to High</a>
+                    <a class="dropdown-item" href="?sort=price&order=desc&category={{ request.GET.category }}">Price:
+                        High
+                        to Low</a>
+                    <a class="dropdown-item" href="?sort=name&order=asc&category={{ request.GET.category }}">Name:
+                        Ascending</a>
+
+                </div>
+            </div>
+        </div>
+        <div class="row" id="wishlist-container">
+            {% for product in products_list %}
+            <div class="col-lg-4 col-md-6 mb-4 product-small">
+                <div class="card product-card h-100 border-0">
+                    <div class="product-image-container">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product_image">
+                        {% if product.isInWishlist%}
+                        <button class="remove-from-wishlist" data-product-id="{{ product.id }}">
+                            <i class="fa-solid fa-heart"></i>
+                        </button>
+                        {% else %}
+                        <button class="add-to-wishlist" data-product-id="{{ product.id }}">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        {% if product.description %}
+                        <p class="card-text">
+                            {{ product.description|slice:":45" }}
+                            {% if product.description|length > 45 %} ...{% endif %}
+                        </p>
+                        {% else %}
+                        <p class="card-text">Click below for more details</p>
+                        {% endif %}
+                        <p class="card-text">Price: ₹{{ product.price }}</p>
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-dark mt-auto">View Details</a>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

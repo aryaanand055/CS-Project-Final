@@ -49,6 +49,20 @@ class ProductImage(models.Model):
     def __str__(self):
         return f'{self.product.name} - {self.image.name.split("/")[2]}'
 
+class Brand(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    logo = models.FileField(upload_to="uploads/brands/logos", blank=True, null=True)
+    poster = models.FileField(upload_to="uploads/brands/posters", blank=True, null=True, help_text="High res backgound image. landscape. Preferably light coloured")
+    created_at = models.DateTimeField(auto_now_add=True)
+    tagline = models.CharField(max_length=75, null=True)
+
+    def get_all_brands():
+        return Brand.objects.all()
+
+    def __str__(self): 
+        return self.name 
+
 @receiver(post_save, sender=ProductImage)
 def associate_image_with_product(sender, instance, created, **kwargs):
     if created:
@@ -58,7 +72,8 @@ class Products(models.Model):
     name = models.CharField(max_length=60) 
     price = models.IntegerField(default=0) 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1) 
-    brand = models.CharField(max_length=100, blank=True)
+    # brand = models.CharField(max_length=100, blank=True)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True)
     tagline = models.CharField(max_length=50, null=True, blank=True)
     description = models.CharField( 
         max_length=500, default='', blank=True, null=True) 

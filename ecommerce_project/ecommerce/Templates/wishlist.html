@@ -8,14 +8,13 @@
     <div class="row">
         {% if wishlist_items %}
         {% for product in wishlist_items %}
-        <div class="col-lg-3 col-md-4 mb-4 product-small">
+        <div class="col-lg-3 col-md-4 mb-4 product-small" data-product-id="{{ product.id }}">
             <div class="card product-card border-0">
                 <div class="product-image-container">
                     <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product_image">
                     <button class="remove-from-wishlist wishlistCard" data-product-id="{{ product.id }}">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
-
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
@@ -26,8 +25,7 @@
                     </p>
                     {% endif %}
                     <p class="card-text">Price: ₹{{ product.price }}</p>
-                    <a href="{% url 'add_to_cart' product_id=product.id %}?from_wishlist=true" class="btn btn-dark">Add
-                        to bag</a>
+                    <button class="btn btn-dark move-to-bag" data-product-id="{{ product.id }}">Move to Bag</button>
                 </div>
             </div>
         </div>
@@ -37,4 +35,42 @@
         {% endif %}
     </div>
 </section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const wishlistContainer = document.getElementById("wishlist-container");
+
+        wishlistContainer.addEventListener("click", (e) => {
+            const button = e.target.closest("button");
+            if (!button || !button.classList.contains("move-to-bag")) return;
+
+            const productID = button.getAttribute("data-product-id");
+            moveProductToBag(productID);
+        });
+
+        function moveProductToBag(productID) {
+            fetch(`/add_to_cart/${productID}/?from_wishlist=true`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const productToRemove = document.querySelector(`.product-small[data-product-id="${productID}"]`);
+                        if (productToRemove) {
+                            productToRemove.remove();
+                        }
+                        window.location.pathname = "/cart"
+                    } else {
+                        console.error(data.message);
+                    }
+                })
+                .catch(error => console.error("Fetch error:", error));
+        }
+    });
+</script>
+
 {% endblock %}

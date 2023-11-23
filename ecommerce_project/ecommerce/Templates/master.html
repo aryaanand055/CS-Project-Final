@@ -57,6 +57,19 @@
                                 </div>
                             </div>
                         </li>
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle" type="link">
+                                    Brands
+                                </a>
+                                <div class="dropdown-menu border-0 shadow-sm text-center">
+                                    {% for brand in brands %}
+                                    <a class="dropdown-item" href="/products?brand={{brand.id}}">
+                                        {{brand}}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </li>
                     </ul>
 
                     <div class="navbar-nav flex-row justify-content-center gap-4">

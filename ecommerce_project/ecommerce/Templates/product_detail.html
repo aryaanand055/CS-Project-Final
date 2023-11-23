@@ -34,6 +34,10 @@
         {% if product.tagline %}
         <h4 class="text-danger product-tagline">{{ product.tagline }}</h4>
         {% endif %}
+        {% if product.brand %}
+        <h5 class="product-brand mt-2 mb-2"><a class=" link-secondary text-decoration-none "
+                href="/brand/{{product.brand.id}}">{{ product.brand }}</a></h5>
+        {% endif %}
         <h2>{{ product.name }}</h2>
         <p class="product-description">{{ product.description }}</p>
         <div class="product-info-price">
@@ -42,19 +46,22 @@
             </p>
         </div>
         <div class="product-info-button-group">
-            {% if cart_quantity == 0 %}
-            <a href="{% url 'add_to_cart' product_id=product.id %}" class="btn btn-dark rounded-5 p-3 m-2 w-100">Add to
-                Bag</a>
-            {% else %}
-            <div class="btn-group w-100 rounded-4 p-4 m-2">
-                <a type="button" class="btn btn-outline-dark p-2"
-                    href="{% url 'remove_from_cart1' product_id=product.id %}"> <span
-                        class=" fa fa-minus minus"></span></a>
-                <a type="button" class="btn btn-outline-dark p-2"> {{ cart_quantity }}</a>
-                <a type="button" class="btn btn-outline-dark p-2" href="{% url 'add_to_cart' product_id=product.id %}">
-                    <span class="fa fa-plus plus"></span></a>
+            <div id="btn-cart-container">
+                {% if cart_quantity == 0 %}
+                <button href="#" class="btn btn-dark rounded-5 p-3 m-2 w-100 btn-addtocart"
+                    data-product-id="{{product.id}}">Add to
+                    Bag</button>
+                {% else %}
+                <div class="btn-group w-100 rounded-4 p-4 m-2">
+                    <button type="button" class="btn btn-outline-dark p-2 btn-removefromcart"
+                        data-product-id="{{product.id}}"> <span class=" fa fa-minus minus"></span></button>
+                    <a type="button" class="btn btn-outline-dark p-2"> {{ cart_quantity }}</a>
+                    <button type="button" class="btn btn-outline-dark p-2 btn-addtocart"
+                        data-product-id="{{product.id}}">
+                        <span class="fa fa-plus plus"></span></button>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
             {% if product.isInWishlist%}
             <button class="remove-from-wishlist btn btn-outline-dark rounded-5 p-3 m-2 w-100"
                 data-product-id="{{ product.id }}" id="productDetailWishlist">

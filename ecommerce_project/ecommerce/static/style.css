@@ -80,7 +80,6 @@ footer .navbar-container {
 }
 
 .header-section {
-
     background-image: url("/image/download/uploads/images/background7.jpg");
     background-size: cover;
     background-position: center;
@@ -90,6 +89,8 @@ footer .navbar-container {
     background-repeat: no-repeat;
     background-size: cover;
 }
+
+
 
 .header-section-ligh {
     margin-top: -60px;

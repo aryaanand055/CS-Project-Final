@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Customer, Wishlist, CartProduct, Cart, Category, Products, ProductImage
+from .models import Customer, Wishlist, CartProduct, Cart, Category, Products, ProductImage, Brand
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from .forms import CustomUserCreationForm, CustomUserLogin
@@ -13,18 +13,30 @@ from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.contrib.sites.models import Site
+import requests
+from django.core.mail import send_mail
+
 
 def categories(request):
     return {'categories': Category.get_all_categories()}
+def brands(request):
+    return {'brands': Brand.get_all_brands()}
 
 def home(req):
     return render(req, "home.html", {"navbarmode": "navbar-ligh", "logoInverted":"-inverted"})
+# def home(req):
+    # return JsonResponse({"abc":"hello"})
 
 def products(req):
-    categories = Category.get_all_categories()
     categoryID = req.GET.get('category')
-    if categoryID:
-        productsList = Products.get_all_products_by_categoryid(categoryID)
+    brandID = req.GET.get('brand')
+    if brandID and categoryID:
+        productsList = Products.objects.filter(brand=brandID, category=categoryID)
+    elif brandID:
+        productsList = Products.objects.filter(brand=brandID)
+    elif categoryID:
+        productsList = Products.objects.filter(category=categoryID)
     else:
         productsList = Products.get_all_products()
     
@@ -52,7 +64,7 @@ def products(req):
             product.image = first_image.image if first_image else None
             product.isInWishlist = False
 
-    return render(req, 'products.html', {'products_list': productsList, "categories": categories})
+    return render(req, 'products.html', {'products_list': productsList})
 
 def product_detail(req, product_id):
     product = Products.get_product_by_id(product_id)
@@ -74,7 +86,7 @@ def product_detail(req, product_id):
             cart_quantity = cart_quantity1[0].quantity
     
     
-    return render(req, "product_detail.html", {"product": product, "categories": categories, "cart_quantity": cart_quantity, "images": productImages})
+    return render(req, "product_detail.html", {"product": product, "cart_quantity": cart_quantity, "images": productImages})
 
 def signupUser(req):
     if req.method == 'POST':
@@ -118,11 +130,13 @@ def logoutUser(request):
 
 def view_cart(request):
     cust = request.session.get("customer_id")
-    cart, created = Cart.objects.get_or_create(customer_id=cust)
-    cart_items = CartProduct.objects.filter(cart=cart)
-    total_price = sum(item.product.price * item.quantity for item in cart_items)
-    
-    return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items, 'total_price': total_price})
+    if cust:
+        cart, created = Cart.objects.get_or_create(customer_id=cust)
+        cart_items = CartProduct.objects.filter(cart=cart)
+        total_price = sum(item.product.price * item.quantity for item in cart_items)
+        return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items, 'total_price': total_price})
+    messages.info(request,"Login to add items to cart")
+    return redirect("loginUser")
 
 def view_wishlist(request):
     cust = request.session.get("customer_id")
@@ -139,36 +153,56 @@ def view_wishlist(request):
         products = [] 
     return render(request, 'wishlist.html', { 'wishlist_items': products})
 
-def add_to_cart(request, product_id):
-    product = Products.objects.get(pk=product_id)
-    user = request.session.get("customer_id")
-    customer = Customer.objects.get(id=user)    
-    cart, created = Cart.objects.get_or_create(customer=customer)
-    cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
-    if not created:
-        cart_item.quantity += 1
-    else:
-        cart_item.quantity = 1
-    cart_item.save()
-    from_wishlist = request.GET.get('from_wishlist')
 
-    # Redirect to the appropriate page
-    if from_wishlist:
-        return redirect('view_cart')
-    else:
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    # return redirect('view_cart')
+def add_to_cart(request, product_id):
+    if request.method == 'POST':
+        from_wishlist = request.GET.get("from_wishlist")
+        product = Products.objects.get(pk=product_id)
+        user = request.session.get("customer_id")
+        customer = Customer.objects.get(id=user)    
+        cart, created = Cart.objects.get_or_create(customer=customer)
+        cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
+        if not created:
+            cart_item.quantity += 1
+        else:
+            cart_item.quantity = 1
+        cart_item.save()
+        print(from_wishlist)
+        if from_wishlist:
+            user = Customer.objects.get(id=request.session.get("customer_id"))
+            wishlist, created = Wishlist.objects.get_or_create(user=user)
+            product = Products.objects.get(id=product_id)
+            wishlist.product.remove(product)
+            wishlist.save()
+
+        response_data = {
+            'success': True,
+            'message': 'Product added to cart successfully.',
+            'cart_quantity': cart_item.quantity
+        }
+        return JsonResponse(response_data)
 
 def remove_from_cart1(request, product_id):
-    product = Products.objects.get(pk=product_id)
-    user = request.session.get("customer_id")
-    customer = Customer.objects.get(id=user)    
-    cart, created = Cart.objects.get_or_create(customer=customer)
-    cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
-    cart_item.quantity -= 1
-    cart_item.save()
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    # return redirect('view_cart')
+    if request.method == 'POST':
+        product = Products.objects.get(pk=product_id)
+        user = request.session.get("customer_id")
+        customer = Customer.objects.get(id=user)    
+        cart, created = Cart.objects.get_or_create(customer=customer)
+        cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
+        
+        if cart_item.quantity > 1:
+            cart_item.quantity -= 1
+            cart_item.save()
+        else:
+            cart_item.quantity = 0
+            cart_item.save()
+
+        response_data = {
+            'success': True,
+            'message': 'Product removed from cart successfully.',
+            'cartQuantity': cart_item.quantity,
+        }
+        return JsonResponse(response_data)
 
 def empty_cart(req):
     print(2343)
@@ -260,24 +294,58 @@ def deleteUser(req):
     else:
         return JsonResponse({"success": False, "msg": "Invalid request method"})    
 
-
 def get_top_products(request):
     filter_term = request.GET.get('filter', '')
     top_products = Products.objects.filter(name__icontains=filter_term)[:5]
     top_products_data = [{'id': product.id, 'name': product.name} for product in top_products]
     return JsonResponse(top_products_data, safe=False)
 
+def brand_details(req, brand_id):
+    brand = Brand.objects.get(id=brand_id)
+    products = Products.objects.filter(brand=brand)
+    for product in products:
+            first_image = product.images.first()
+            product.image = first_image.image if first_image else None
+    print(products)
+    return render(req, 'brand_detail.html', {'brand': brand, 'products_list': products})
 # Checkout
+
+def get_user_location(ip_address):
+    # Use ipstack API to get geolocation information
+    ipstack_access_key = '96cca56bb0a73cc28523a414c620da59'
+    api_url = f'http://api.ipstack.com/{ip_address}?access_key={ipstack_access_key}'
+    response = requests.get(api_url)
+    data = response.json()
+    return data.get('city', 'Unknown City'), data.get('region_name', 'Unknown Region'), data.get('country_name', 'Unknown Country')
+
+# views.py or a utility module
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip, None 
+
+
 def checkout(request):
     user = request.session.get("customer_id")
     customer = Customer.objects.get(id=user)
-    name = customer.user_name  # Replace with the actual attribute name
-    fname = customer.first_name  # Replace with the actual attribute name
-    lname = customer.last_name  # Replace with the actual attribute name
-    email = customer.email  # Replace with the actual attribute email
+    name = customer.user_name
+    fname = customer.first_name
+    lname = customer.last_name
+    email = customer.email
+
+    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown User Agent')
+    client_ip, is_routable = get_client_ip(request)
+
+    city, region, country = get_user_location(client_ip)
+    current_site = Site.objects.get_current()
+    website_name = current_site.name
+    website_url = request.build_absolute_uri('/')
 
     products_and_quantities = []
-    cart = Cart.objects.get(customer = user)
+    cart = Cart.objects.get(customer=user)
     cart_items = CartProduct.objects.filter(cart=cart)
     for cart_item in cart_items:
         product = cart_item.product
@@ -285,19 +353,29 @@ def checkout(request):
         price = cart_item.product.price
         totalProductPrice = price * quantity
         products_and_quantities.append((product.name, quantity, price, totalProductPrice))
+
     table_rows = ""
     for item in products_and_quantities:
         product, quantity, price, totalProductPrice = item
         table_rows += f"<tr><td>{product}</td><td>{quantity}</td><td>{price}</td><td>{totalProductPrice}</td></tr>"
 
+    # Include location details in the context
     html_message = render_to_string('checkout_email.html', {
         'username': name,
-        'name': fname + " " +lname,
+        'name': fname + " " + lname,
         'email': email,
+        'user_agent': user_agent,
+        'client_ip': client_ip,
+        'website_name': website_name,
+        'website_url': website_url,
+        'city': city,
+        'region': region,
+        'country': country,
         'table_rows': table_rows,
     })
+
     subject = 'Checkout Request'
-    from_email = 'aryaanand053@gmail.com'  # Use your provided email
+    from_email = 'aryaanand053@gmail.com'
     recipient_email = 'aryaanand050@gmail.com'
     send_mail(subject, '', from_email, [recipient_email], html_message=html_message)
     empty_cart(request)

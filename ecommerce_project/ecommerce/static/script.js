@@ -11,7 +11,6 @@ function searchProducts(e) {
         fetch("/get_top_products?filter=" + filter)
             .then(response => response.json())
             .then(data => {
-                // Process the data and update the UI (e.g., display in a dropdown)
                 updateDropdown(data);
             })
             .catch(error => console.error("Error fetching top products:", error));
@@ -37,7 +36,6 @@ document.addEventListener("click", function (event) {
     }
 });
 
-
 function updateDropdown(products) {
     let dropdown = document.getElementById("search-dropdown");
     if (!dropdown) {
@@ -49,13 +47,11 @@ function updateDropdown(products) {
     dropdown.style.maxWidth = document.getElementById("navbar-search").offsetWidth + "px";
 
     if (products.length === 0) {
-        // Display a "No products found" message
         let noProductsItem = document.createElement("div");
         noProductsItem.classList = "dropdown-item text-truncate w-100 text-muted";
         noProductsItem.innerText = "No products found";
         dropdown.appendChild(noProductsItem);
     } else {
-        // Display products in the dropdown
         for (let i = 0; i < Math.min(5, products.length); i++) {
             let product = products[i];
             let dropdownItem = document.createElement("div");
@@ -74,7 +70,6 @@ function updateDropdown(products) {
 
     dropdown.style.display = "block";
 }
-
 
 function addtoWishlist1() {
     var productListContainer = document.getElementById("wishlist-container");
@@ -231,8 +226,6 @@ function showSlides(n) {
 
 function deleteProfile() {
     if (window.location.pathname.search("/profile/") != -1) {
-
-
         document.getElementById("deleteProfileBtn").addEventListener("click", () => {
             let psswd = prompt("Enter password to delete user");
             fetch('/deleteUser/', {
@@ -258,4 +251,84 @@ function deleteProfile() {
             });
         });
     }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const btnContainer = document.getElementById("btn-cart-container");
+
+    btnContainer.addEventListener("click", (e) => {
+        const button = e.target.closest("button");
+        if (!button) return;
+
+        const productID = button.getAttribute('data-product-id');
+
+        if (button.classList.contains("btn-addtocart")) {
+            addToCart(productID);
+        } else if (button.classList.contains("btn-removefromcart")) {
+            removeFromCart(productID);
+        }
+    });
+});
+
+function updateCartUI(cartQuantity, productID) {
+    const cntnr = document.getElementById("btn-cart-container");
+
+    if (cartQuantity > 0) {
+        cntnr.innerHTML = `
+            <div class="btn-group w-100 rounded-4 p-4 m-2">
+                <button type="button" class="btn btn-outline-dark p-2 btn-removefromcart" data-product-id="${productID}">
+                    <span class="fa fa-minus minus"></span>
+                </button>
+                <a type="button" class="btn btn-outline-dark p-2">${cartQuantity}</a>
+                <button type="button" class="btn btn-outline-dark p-2 btn-addtocart" data-product-id="${productID}">
+                    <span class="fa fa-plus plus"></span>
+                </button>
+            </div>`;
+    } else {
+        cntnr.innerHTML = `
+            <button class="btn btn-dark rounded-5 p-3 m-2 w-100 btn-addtocart" data-product-id="${productID}">
+                Add to Bag
+            </button>`;
+    }
+}
+
+function addToCart(productID) {
+    fetch(`/add_to_cart/${productID}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+            product_id: productID
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartUI(data.cart_quantity, productID);
+            } else {
+                console.error(data.message);
+            }
+        })
+        .catch(error => console.error("Fetch error:", error));
+}
+
+function removeFromCart(productID) {
+    fetch(`/remove_from_cart1/${productID}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartUI(data.cartQuantity, productID);
+            } else {
+                console.error(data.message);
+            }
+        })
+        .catch(error => console.error("Fetch error:", error));
 }
