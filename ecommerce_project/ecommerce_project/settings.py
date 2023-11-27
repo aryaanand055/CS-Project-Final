@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-vrtgdm@(scnn7er@u+jpl3xg**u_d!o+-v7xhh-y&nz+4n%ec!'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["viper321.pythonanywhere.com", "localhost"]
 

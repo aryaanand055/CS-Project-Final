@@ -35,8 +35,9 @@
         <h4 class="text-danger product-tagline">{{ product.tagline }}</h4>
         {% endif %}
         {% if product.brand %}
-        <h5 class="product-brand mt-2 mb-2"><a class=" link-secondary text-decoration-none "
-                href="/brand/{{product.brand.id}}">{{ product.brand }}</a></h5>
+        <h5 class="product-brand mt-2 mb-2"><a
+                class="link-underline-opacity-50-hover link-underline-opacity-0  link-underline-danger link-secondary"
+                href="/brand/{{product.brand.id}}">Brand: {{ product.brand }}</a></h5>
         {% endif %}
         <h2>{{ product.name }}</h2>
         <p class="product-description">{{ product.description }}</p>

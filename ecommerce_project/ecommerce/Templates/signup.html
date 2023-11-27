@@ -45,8 +45,18 @@
 
                 <div class="form-group mb-3">
                     <label for="exampleInputEmail1"> {{ form.password.label_tag }}</label>
-                    <input type="password" name="password" autocomplete="new-password" required="" id="id_password"
-                        control-id="ControlID-4" class="form-control">
+                    <div class="input-group">
+                        <input type="password" name="password" autocomplete="new-password" required="" id="id_password"
+                            control-id="ControlID-4" class="form-control"
+                            style="border-radius: 4px 0 0 4px; border-right:0 ;">
+                        <div class="input-group-append" style="border-left: 0;">
+                            <span class="input-group-text h-100 bg-white"
+                                style="cursor: pointer; border-left: 0; border-radius: 0 4px 4px 0; "
+                                id="togglePassword">
+                                <i class="fas fa-eye " style="transition-duration: 200ms;"></i>
+                            </span>
+                        </div>
+                    </div>
                     {% if form.password.errors %}
                     <small class="text-danger">{{ form.password.errors }}</small>
                     {% endif %}

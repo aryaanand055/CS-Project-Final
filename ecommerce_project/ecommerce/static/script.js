@@ -332,3 +332,19 @@ function removeFromCart(productID) {
         })
         .catch(error => console.error("Fetch error:", error));
 }
+document.addEventListener('DOMContentLoaded', function () {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('id_password');
+    const ic = document.querySelector(".fa-eye")
+
+    togglePassword.addEventListener('mouseenter', function () {
+        passwordInput.type = 'text';
+        ic.style.scale = 1.1
+    });
+
+    togglePassword.addEventListener('mouseleave', function () {
+        passwordInput.type = 'password';
+        ic.style.scale = 1
+
+    });
+});

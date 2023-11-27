@@ -1,21 +1,16 @@
 from django.shortcuts import render, redirect
-from .models import Customer, Wishlist, CartProduct, Cart, Category, Products, ProductImage, Brand
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login as auth_login, logout as auth_logout
+from .models import *
 from .forms import CustomUserCreationForm, CustomUserLogin
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
-from django.db.models import F
-from django.http import HttpResponseRedirect
-from django.core.mail import send_mail
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.sites.models import Site
 import requests
 from django.core.mail import send_mail
+from django.contrib.auth.hashers import make_password, check_password
 
 
 def categories(request):
@@ -25,8 +20,6 @@ def brands(request):
 
 def home(req):
     return render(req, "home.html", {"navbarmode": "navbar-ligh", "logoInverted":"-inverted"})
-# def home(req):
-    # return JsonResponse({"abc":"hello"})
 
 def products(req):
     categoryID = req.GET.get('category')
@@ -92,7 +85,11 @@ def signupUser(req):
     if req.method == 'POST':
         form = CustomUserCreationForm(req.POST)
         if form.is_valid():
-            user = form.save()
+            # Manually hash the password before saving
+            user = form.save(commit=False)
+            user.password = make_password(form.cleaned_data['password'])
+            user.save()
+
             messages.success(req, f"The user {user.user_name} is registered successfully.")
             return redirect('loginUser')
         else:
@@ -111,7 +108,7 @@ def loginUser(request):
         password = request.POST.get('password')
         customer = Customer.objects.filter(email=email).first()
         if customer:
-            if password == customer.password:
+            if check_password(password, customer.password):
                 print("Check successful")
                 request.session['customer'] = customer.user_name
                 request.session['customer_id'] = customer.id
@@ -381,3 +378,6 @@ def checkout(request):
     empty_cart(request)
 
     return render(request, 'checkout_success.html', {"products_list": products_and_quantities})
+
+def f04(req):
+    return render(req, '404.html')

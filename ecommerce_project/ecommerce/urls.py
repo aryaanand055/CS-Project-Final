@@ -24,7 +24,9 @@ urlpatterns = [
     path('deleteUser/', views.deleteUser, name='deleteUser'),
     path('get_top_products/', views.get_top_products, name='get_top_products'),
     path('brand/<int:brand_id>', views.brand_details, name='brand_details'),
+    path('f04/', views.f04, name='f04'),
 ]
+
 
 from django.conf import settings
 from django.conf.urls.static import static
