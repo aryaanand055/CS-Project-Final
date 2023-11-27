@@ -378,6 +378,3 @@ def checkout(request):
     empty_cart(request)
 
     return render(request, 'checkout_success.html', {"products_list": products_and_quantities})
-
-def f04(req):
-    return render(req, '404.html')
