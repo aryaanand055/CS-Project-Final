@@ -112,11 +112,20 @@ function addToWishlist(productID, button) {
                     button.classList.add("remove-from-wishlist")
                     button.textContent = "Remove From Wishlist"
                 } else {
-
                     button.classList = "remove-from-wishlist"
                     var heartIcon = button.querySelector("i");
                     heartIcon.classList.remove("fa-regular");
                     heartIcon.classList.add("fa-solid");
+                    let heartAnimateIcon = button.querySelector(".heart-outline-animate")
+                    heartAnimateIcon.style.opacity = 0;
+                    heartAnimateIcon.style.transform = "scale(4)";
+
+                    setTimeout(function () {
+                        heartAnimateIcon.style.transform = "scale(1)";
+                        setTimeout(function () {
+                            heartAnimateIcon.style.opacity = 1;
+                        }, 500);
+                    }, 500);
                 }
             } else {
                 if (data.msg == "User not logged in") {
@@ -175,10 +184,21 @@ function removeFromWishlist(productID, button) {
                         button.classList.remove("remove-from-wishlist")
                         button.textContent = "Add To Wishlist"
                     } else {
+
                         button.classList = "add-to-wishlist"
                         var heartIcon = button.querySelector("i");
                         heartIcon.classList.remove("fa-solid");
                         heartIcon.classList.add("fa-regular");
+                        let heartAnimateIcon = button.querySelector(".heart-outline-animate")
+                        heartAnimateIcon.style.opacity = 0;
+                        heartAnimateIcon.style.transform = "scale(4)";
+
+                        setTimeout(function () {
+                            heartAnimateIcon.style.transform = "scale(1)";
+                            setTimeout(() => {
+                                heartAnimateIcon.style.opacity = 1;
+                            }, 500);
+                        }, 500)
                     }
                 }
             } else {
@@ -189,6 +209,7 @@ function removeFromWishlist(productID, button) {
             console.error("Fetch error:", error);
         });
 }
+
 let slideIndex = 1;
 function showSlides1() {
     showSlides(slideIndex)

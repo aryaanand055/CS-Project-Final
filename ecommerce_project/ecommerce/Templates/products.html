@@ -35,11 +35,13 @@
                     <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product_image">
                     {% if product.isInWishlist%}
                     <button class="remove-from-wishlist" data-product-id="{{ product.id }}">
-                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart" style="position: absolute; top: 0; left: 0;"></i>
+                        <i class="fa-regular fa-heart heart-outline-animate"></i>
                     </button>
                     {% else %}
                     <button class="add-to-wishlist" data-product-id="{{ product.id }}">
-                        <i class="fa-regular fa-heart"></i>
+                        <i class="fa-regular fa-heart" style="position: absolute; top: 0; left: 0;"></i>
+                        <i class="fa-regular fa-heart heart-outline-animate"></i>
                     </button>
                     {% endif %}
                 </div>
