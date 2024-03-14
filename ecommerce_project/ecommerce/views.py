@@ -131,8 +131,27 @@ def view_cart(request):
         cart, created = Cart.objects.get_or_create(customer_id=cust)
         cart_items = CartProduct.objects.filter(cart=cart)
         total_price = sum(item.product.price * item.quantity for item in cart_items)
-        return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items, 'total_price': total_price})
-    messages.info(request,"Login to add items to cart")
+        
+        # Retrieve all details about the product along with images
+        cart_items_with_details = []
+        for cart_item in cart_items:
+            product = cart_item.product
+            product_images = product.images.all()
+            product_details = {
+                'id': product.id,
+                'name': product.name,
+                'price': product.price,
+                'category': product.category,
+                'brand': product.brand,
+                'description': product.description,
+                'images': product_images,
+                'quantity': cart_item.quantity
+            }
+            cart_items_with_details.append(product_details)
+        
+        return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items_with_details, 'total_price': total_price})
+    
+    messages.info(request, "Login to add items to cart")
     return redirect("loginUser")
 
 def view_wishlist(request):
@@ -152,6 +171,13 @@ def view_wishlist(request):
 
 
 def add_to_cart(request, product_id):
+    # Check whether the user is logged in
+    cust = request.session.get('customer_id')
+    if not cust:
+        messages.info(request, "Login to add items to cart")
+        return redirect("loginUser")
+        
+
     if request.method == 'POST':
         from_wishlist = request.GET.get("from_wishlist")
         product = Products.objects.get(pk=product_id)
@@ -193,6 +219,9 @@ def remove_from_cart1(request, product_id):
         else:
             cart_item.quantity = 0
             cart_item.save()
+            zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
+            for cart_item in zero_quantity_cart_items:
+                cart_item.clean_up()
 
         response_data = {
             'success': True,
@@ -202,10 +231,10 @@ def remove_from_cart1(request, product_id):
         return JsonResponse(response_data)
 
 def empty_cart(req):
-    print(2343)
     user = req.session.get("customer_id")
     cart = Cart.objects.get(customer=user)
     cart.cartproduct_set.all().delete()
+    cleanCart()
     return redirect("products")
 
 def update_cart(request):
@@ -221,17 +250,68 @@ def update_cart(request):
                         cart_item.save()
                     else:
                         cart_item.delete()
+                        zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
+                        for cart_item in zero_quantity_cart_items:
+                            cart_item.clean_up()
                 except CartProduct.DoesNotExist:
                     pass
     return redirect('view_cart')
 
-def remove_from_cart(request, cart_item_id):
-    try:
-        cart_item = CartProduct.objects.get(id=cart_item_id)
-        cart_item.delete()
-    except CartProduct.DoesNotExist:
-        pass
-    return redirect('view_cart')
+from django.http import JsonResponse
+
+def remove_from_cart(request, product_id):
+    print(product_id)
+    if request.method == 'GET':
+        product = Products.objects.get(pk=product_id)
+        user_id = request.session.get("customer_id")
+        
+        if user_id:
+            try:
+                # Retrieve the user's cart
+                customer = Customer.objects.get(id=user_id)
+                cart = Cart.objects.get(customer=customer)
+                
+                # Retrieve the cart item for the specified product
+                cart_item = CartProduct.objects.get(cart=cart, product=product)
+                
+                # Decrement the quantity or remove the product from the cart
+                if cart_item.quantity > 1:
+                    cart_item.quantity -= 1
+                    cart_item.save()
+                else:
+                    cart_item.delete()
+                    zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
+                    for cart_item in zero_quantity_cart_items:
+                        cart_item.clean_up()
+                
+                # Return a JSON response indicating success
+                response_data = {
+                    'success': True,
+                    'message': 'Product removed from cart successfully.',
+                    'cartQuantity': cart_item.quantity if cart_item.quantity > 0 else 0,
+                }
+                return JsonResponse(response_data)
+            except (Customer.DoesNotExist, Cart.DoesNotExist, CartProduct.DoesNotExist):
+                # Handle the case where the user or cart does not exist, or the product is not in the cart
+                response_data = {
+                    'success': False,
+                    'message': 'Error: Unable to remove product from cart.',
+                }
+                return JsonResponse(response_data, status=400)
+        else:
+            # Handle the case where the user is not logged in
+            response_data = {
+                'success': False,
+                'message': 'Error: User not logged in.',
+            }
+            return JsonResponse(response_data, status=400)
+
+
+def cleanCart() :
+    zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
+    for cart_item in zero_quantity_cart_items:
+        cart_item.clean_up()
+
 
 def add_to_wishlist(request, product_id):
     user_id = request.session.get("customer_id") 

@@ -55,8 +55,11 @@
                 {% else %}
                 <div class="btn-group w-100 rounded-4 p-4 m-2">
                     <button type="button" class="btn btn-outline-dark p-2 btn-removefromcart"
-                        data-product-id="{{product.id}}"> <span class=" fa fa-minus minus"></span></button>
-                    <a type="button" class="btn btn-outline-dark p-2"> {{ cart_quantity }}</a>
+                        data-product-id="{{product.id}}">
+                        <span class=" fa fa-minus minus"></span>
+                    </button>
+                    <a type="button" class="btn btn-outline-dark p-2" disabled href="/cart" data-toggle="tooltip"
+                        data-placement="auto" title="View Cart"> {{ cart_quantity }}</a>
                     <button type="button" class="btn btn-outline-dark p-2 btn-addtocart"
                         data-product-id="{{product.id}}">
                         <span class="fa fa-plus plus"></span></button>

@@ -1,71 +1,163 @@
 {% extends 'master.html' %}
 {% load mathfilters %}
-{% block title %}Your Cart{% endblock %}
-
+{% block title %}Your Bag{% endblock %}
 {% block content %}
-<div class="container w-75 m-auto mt-5 mb-5 ">
+<div class="container w-75 m-auto mt-5">
+    <div class="row">
+        <div class="col-7">
+            <h2>Bag</h2>
+            <div class="container">
+                {% if cart_items %}
+                {% for cart_item in cart_items %}
+
+                <div class="row ">
+                    <div class="col-3">
+                        {% if cart_item.images %}
+                        <img src="{{ cart_item.images.first.image.url }}" alt="{{ cart_item.name }}"
+                            class="cart-image rounded-4">
+                        {% endif %}
+                    </div>
+                    <div class="col-6 pt-2 d-flex flex-column">
+                        <h6><strong>{{ cart_item.name }}</strong></h6>
+                        {% if cart_item.tagline %}
+                        <p> {{ cart_item.tagline }}</p>
+                        {% endif %}{% if cart_item.brand %}
+                        <p> {{ cart_item.brand }}</p>
+                        {% endif %}
+                        <div class="quan-drop">
+                            <label for="quantity">Quantity:</label>
+                            <select name="quantity" id="quantity" class="border-0" style="width: 40px;">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                            <label for="Size">Size:</label>
+                            <select name="Size" id="quantity" class="border-0" style="width: 90px;">
+                                <option value="onesize">Onesize</option>
+
+                            </select>
+                        </div>
+                        <br>
+                        <div class="icons">
+
+                            <button class="link-secondary remove-from-cart btn" data-toggle="tooltip"
+                                data-placement="auto left" title="Remove Product" data-product-id="{{ cart_item.id }}">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+
+                            <button class="move-to-wishlist btn" data-product-id="{{ cart_item.id }}"
+                                data-toggle="tooltip" data-placement="auto left" title="Move to Wishlist">
+                                <i class="fa-regular fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <strong>MRP: ₹{{ cart_item.price|mul:cart_item.quantity }}</strong>
+                    </div>
+                </div>
+                <hr class="border-1 border-dark border-top">
+                {% endfor %}
+                {% else %}
+                <h4 style="margin-top: 35%;
+    margin-left: 30%;">No Items In Bag!</h4>
+                {% endif %}
+
+            </div>
+        </div>
+        <div class="col-5 fw-bold">
+            <h2>Summary</h2>
+            <div class="p-3 w-100">
+                Subtotal
+                <span class="float-end">₹ {{total_price}}</span>
+            </div>
+            <div class="p-3">
+                Estimated Delivery & Handling
+                <span class="float-end">₹ 1 250.00</span>
+            </div>
+            <hr class="border-1 border-dark border-top">
+            <div class="p-3 w-100 fw-bolder fs-4">
+                Total
+                <span class="float-end">₹ {{ total_price|add:1250|floatformat:"0" }}.00</span>
+            </div>
+            <hr class="border-1 border-dark border-top">
+            {% if not cart_items %}
+            <button href="{% url 'checkout' %}" class="btn btn-dark w-100 p-3 rounded-5 mt-4" disabled>
+                Checkout Now</button>
+            {% else %}
+            <a href="{% url 'checkout' %}" class="btn btn-dark w-100 p-3 rounded-5 mt-4"> Checkout Now</a>
+            {% endif %}
+            <a href="{% url 'products' %}" class="btn btn-dark w-100 p-3 rounded-5 mt-4">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+<!-- 
+
+
+<div class=" container w-75 m-auto mt-5 mb-5 ">
     <h1>Your Cart</h1>
 
     {% if cart_items %}
-    <form method="post" action="{% url 'update_cart' %}">
-        {% csrf_token %}
-        <table class="table text-center">
-            <thead class="">
-                <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>MRP</th>
-                    <th>Price</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cart_item in cart_items %}
-                <tr>
-                    <td>{{ cart_item.product.name }}</td>
-                    <td>
-                        <div class="input-group m-auto">
-                            <span class="input-group-btn">
-                                <button type="button" class="btn btn-default btn-number minus"
-                                    data-field="quantity_{{ cart_item.id }}">
-                                    <span class="fa fa-minus minus"></span>
-                                </button>
-                            </span>
-                            <input type="text" name="quantity_{{ cart_item.id }}" value="{{ cart_item.quantity }}"
-                                class="form-control form-control-sm input-number border-0 text-center " min="1"
-                                style="width: 20px;">
-                            <span class="input-group-btn">
-                                <button type="button" class="btn btn-default btn-number plus"
-                                    data-field="quantity_{{ cart_item.id }}">
-                                    <span class="fa fa-plus plus"></span>
-                                </button>
-                            </span>
-                        </div>
+    <form method=" post" action="{% url 'update_cart' %}">
+                    {% csrf_token %}
+                    <table class="table text-center">
+                        <thead class="">
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>MRP</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cart_item in cart_items %}
+                            <tr>
+                                <td>{{ cart_item.product.name }}</td>
+                                <td>
+                                    <div class="input-group m-auto">
+                                        <span class="input-group-btn">
+                                            <button type="button" class="btn btn-default btn-number minus"
+                                                data-field="quantity_{{ cart_item.id }}">
+                                                <span class="fa fa-minus minus"></span>
+                                            </button>
+                                        </span>
+                                        <input type="text" name="quantity_{{ cart_item.id }}"
+                                            value="{{ cart_item.quantity }}"
+                                            class="form-control form-control-sm input-number border-0 text-center "
+                                            min="1" style="width: 20px;">
+                                        <span class="input-group-btn">
+                                            <button type="button" class="btn btn-default btn-number plus"
+                                                data-field="quantity_{{ cart_item.id }}">
+                                                <span class="fa fa-plus plus"></span>
+                                            </button>
+                                        </span>
+                                    </div>
 
-                    </td>
-                    <td>₹{{ cart_item.product.price }}</td>
-                    <td>₹{{ cart_item.product.price|mul:cart_item.quantity }}</td>
-                    <td>
-                        <a href="{% url 'remove_from_cart' cart_item.id %}" class="link-danger">Remove</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div>
-            <p class=""><b>Total Price:</b> ₹{{ total_price }}</p>
-        </div>
-        <span class="opacity-50">Remember to update cart if u change any quantities</span><br><br>
-        <button type="submit" class="btn btn-primary">Update Cart</button>
-        <a href="{% url 'empty_cart' %}" class="btn btn-secondary">Empty Cart</a>
-        <a href="{% url 'checkout' %}" class="btn btn-secondary">Enquire best price</a>
-    </form>
+                                </td>
+                                <td>₹{{ cart_item.product.price }}</td>
+                                <td>₹{{ cart_item.product.price|mul:cart_item.quantity }}</td>
+                                <td>
+                                    <a href="" class="link-danger">Remove</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div>
+                        <p class=""><b>Total Price:</b> ₹{{ total_price }}</p>
+                    </div>
+                    <span class="opacity-50">Remember to update cart if u change any quantities</span><br><br>
+                    <button type="submit" class="btn btn-primary">Update Cart</button>
+                    <a href="{% url 'empty_cart' %}" class="btn btn-secondary">Empty Cart</a>
+                    <a href="{% url 'checkout' %}" class="btn btn-secondary">Enquire best price</a>
+                    </form>
 
-    {% else %}
-    <p>Your cart is empty.</p>
-    {% endif %}
-</div>
-<script>
+                    {% else %}
+                    <p>Your cart is empty.</p>
+                    {% endif %} -->
+<!-- </div> -->
+<!-- <script>
     document.querySelectorAll('.btn-number').forEach(function (button) {
         button.addEventListener('click', function (e) {
             e.preventDefault();
@@ -88,6 +180,6 @@
             }
         });
     });
-</script>
+</script> -->
 
 {% endblock %}

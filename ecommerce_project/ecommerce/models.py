@@ -72,7 +72,6 @@ class Products(models.Model):
     name = models.CharField(max_length=60) 
     price = models.IntegerField(default=0) 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1) 
-    # brand = models.CharField(max_length=100, blank=True)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True)
     tagline = models.CharField(max_length=50, null=True, blank=True)
     description = models.CharField( 
@@ -117,6 +116,10 @@ class CartProduct(models.Model):
 
     def __str__(self):
         return f"{self.product.name} in Cart for {self.cart.customer.user_name}"
+    
+    def clean_up(self):
+        if self.quantity == 0:
+            self.delete()
 
 class Wishlist(models.Model):
     user = models.OneToOneField('Customer',on_delete=models.SET_NULL ,null=True )

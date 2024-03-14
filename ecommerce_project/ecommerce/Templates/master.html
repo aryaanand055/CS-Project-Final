@@ -108,7 +108,7 @@
                             <i class="fa-regular fa-heart"></i>
                         </a>
                         <a class="nav-item nav-link" href="{% url 'view_cart' %}" data-toggle="tooltip"
-                            data-placement="auto left" title="Wishlist">
+                            data-placement="auto left" title="Bag">
                             <i class="fa-brands fa-opencart"></i>
                         </a>
                     </div>
@@ -130,10 +130,8 @@
         document.addEventListener("DOMContentLoaded", function () {
             var dropdownToggles = document.querySelectorAll('.dropdown-toggle');
 
-            // Loop through each dropdown toggle element and add an event listener
             dropdownToggles.forEach(function (dropdownToggle) {
                 dropdownToggle.addEventListener("click", function () {
-                    // Toggle the 'show' class on the parent element with class 'dropdown'
                     var dropdownMenu = this.parentElement.querySelector(
                         '.dropdown-menu');
                     if (dropdownMenu) {

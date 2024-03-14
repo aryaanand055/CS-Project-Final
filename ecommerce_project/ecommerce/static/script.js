@@ -88,6 +88,41 @@ function addtoWishlist1() {
     });
 }
 
+
+document.addEventListener('DOMContentLoaded', function () {
+    const wishlistBtns = document.querySelectorAll(".move-to-wishlist")
+    wishlistBtns.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            const productID = item.getAttribute('data-product-id');
+            moveToWishlist(productID)
+        })
+    })
+})
+
+function moveToWishlist(productID) {
+    fetch(`/add_to_wishlist/${productID}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+            product_id: productID
+        }),
+    }).then(() => {
+        fetch(`/remove_from_cart/${productID}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+        }).then(() => {
+            window.location.reload()
+        })
+    })
+
+}
+
 function addToWishlist(productID, button) {
     fetch(`/add_to_wishlist/${productID}/`, {
         method: "POST",
@@ -98,46 +133,43 @@ function addToWishlist(productID, button) {
         body: JSON.stringify({
             product_id: productID
         }),
-    })
-        .then(function (response) {
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error("Network response was not ok.");
-        })
-        .then(function (data) {
-            if (data.success) {
-                if (button.id == "productDetailWishlist") {
-                    button.classList.remove("add-to-wishlist")
-                    button.classList.add("remove-from-wishlist")
-                    button.textContent = "Remove From Wishlist"
-                } else {
-                    button.classList = "remove-from-wishlist"
-                    var heartIcon = button.querySelector("i");
-                    heartIcon.classList.remove("fa-regular");
-                    heartIcon.classList.add("fa-solid");
-                    let heartAnimateIcon = button.querySelector(".heart-outline-animate")
-                    heartAnimateIcon.style.opacity = 0;
-                    heartAnimateIcon.style.transform = "scale(4)";
-
-                    setTimeout(function () {
-                        heartAnimateIcon.style.transform = "scale(1)";
-                        setTimeout(function () {
-                            heartAnimateIcon.style.opacity = 1;
-                        }, 500);
-                    }, 500);
-                }
+    }).then(function (response) {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error("Network response was not ok.");
+    }).then(function (data) {
+        if (data.success) {
+            if (button.id == "productDetailWishlist") {
+                button.classList.remove("add-to-wishlist")
+                button.classList.add("remove-from-wishlist")
+                button.textContent = "Remove From Wishlist"
             } else {
-                if (data.msg == "User not logged in") {
-                    if (confirm("You will have to login before that...")) {
-                        open("/login", "_self")
-                    }
+                button.classList = "remove-from-wishlist"
+                var heartIcon = button.querySelector("i");
+                heartIcon.classList.remove("fa-regular");
+                heartIcon.classList.add("fa-solid");
+                let heartAnimateIcon = button.querySelector(".heart-outline-animate")
+                heartAnimateIcon.style.opacity = 0;
+                heartAnimateIcon.style.transform = "scale(4)";
+
+                setTimeout(function () {
+                    heartAnimateIcon.style.transform = "scale(1)";
+                    setTimeout(function () {
+                        heartAnimateIcon.style.opacity = 1;
+                    }, 500);
+                }, 500);
+            }
+        } else {
+            if (data.msg == "User not logged in") {
+                if (confirm("You will have to login before that...")) {
+                    open("/login", "_self")
                 }
             }
-        })
-        .catch(function (error) {
-            console.error("Fetch error:", error.msg);
-        });
+        }
+    }).catch(function (error) {
+        console.error("Fetch error:", error.msg);
+    });
 }
 
 // Function to get the CSRF token from cookies (Django-specific)
@@ -286,10 +318,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (button.classList.contains("btn-addtocart")) {
             addToCart(productID);
         } else if (button.classList.contains("btn-removefromcart")) {
-            removeFromCart(productID);
+            removeFromCart(productID, 0);
         }
     });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const cartItems = document.querySelectorAll(".remove-from-cart")
+    cartItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            const productID = item.getAttribute('data-product-id');
+            removeFromCart(productID, 1)
+        })
+    })
+})
 
 function updateCartUI(cartQuantity, productID) {
     const cntnr = document.getElementById("btn-cart-container");
@@ -314,11 +356,17 @@ function updateCartUI(cartQuantity, productID) {
 }
 
 function addToCart(productID) {
+    const csrftoken = getCookie("csrftoken");
+    if (!csrftoken) {
+        // User is not logged in, redirect to login page
+        window.location.href = "/login";
+        return;
+    }
     fetch(`/add_to_cart/${productID}/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"),
+            "X-CSRFToken": csrftoken,
         },
         body: JSON.stringify({
             product_id: productID
@@ -335,8 +383,8 @@ function addToCart(productID) {
         .catch(error => console.error("Fetch error:", error));
 }
 
-function removeFromCart(productID) {
-    fetch(`/remove_from_cart1/${productID}/`, {
+function removeFromCart(productID, mode) {
+    fetch(`/remove_from_cart/${productID}/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -346,7 +394,11 @@ function removeFromCart(productID) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                updateCartUI(data.cartQuantity, productID);
+                if (mode === 0) {
+                    updateCartUI(data.cartQuantity, productID);
+                } else if (mode === 1) {
+                    window.location = "cart";
+                }
             } else {
                 console.error(data.message);
             }
