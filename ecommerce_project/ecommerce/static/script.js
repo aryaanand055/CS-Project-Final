@@ -333,17 +333,19 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 })
 
-function updateCartUI(cartQuantity, productID) {
+function updateCartUI(cartQuantity, productID, msg) {
     const cntnr = document.getElementById("btn-cart-container");
 
     if (cartQuantity > 0) {
+
         cntnr.innerHTML = `
             <div class="btn-group w-100 rounded-4 p-4 m-2">
                 <button type="button" class="btn btn-outline-dark p-2 btn-removefromcart" data-product-id="${productID}">
                     <span class="fa fa-minus minus"></span>
                 </button>
                 <a type="button" class="btn btn-outline-dark p-2">${cartQuantity}</a>
-                <button type="button" class="btn btn-outline-dark p-2 btn-addtocart" data-product-id="${productID}">
+                <button type="button" class="btn btn-outline-dark p-2 btn-addtocart" data-product-id="${productID}" data-toggle="tooltip"
+                                data-placement="auto right" title="${msg}" >
                     <span class="fa fa-plus plus"></span>
                 </button>
             </div>`;
@@ -375,8 +377,9 @@ function addToCart(productID) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                updateCartUI(data.cart_quantity, productID);
+                updateCartUI(data.cart_quantity, productID, "");
             } else {
+                updateCartUI(data.cart_quantity, productID, data.message);
                 console.error(data.message);
             }
         })
@@ -395,7 +398,7 @@ function removeFromCart(productID, mode) {
         .then(data => {
             if (data.success) {
                 if (mode === 0) {
-                    updateCartUI(data.cartQuantity, productID);
+                    updateCartUI(data.cartQuantity, productID, "");
                 } else if (mode === 1) {
                     window.location = "cart";
                 }
@@ -421,3 +424,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     });
 });
+

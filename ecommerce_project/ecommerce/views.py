@@ -185,18 +185,36 @@ def add_to_cart(request, product_id):
         customer = Customer.objects.get(id=user)    
         cart, created = Cart.objects.get_or_create(customer=customer)
         cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
-        if not created:
-            cart_item.quantity += 1
-        else:
-            cart_item.quantity = 1
-        cart_item.save()
-        print(from_wishlist)
+
         if from_wishlist:
             user = Customer.objects.get(id=request.session.get("customer_id"))
             wishlist, created = Wishlist.objects.get_or_create(user=user)
             product = Products.objects.get(id=product_id)
             wishlist.product.remove(product)
             wishlist.save()
+            if(cart_item.quantity + 1 > 9):
+                response_data = {
+                    'success': True,
+                    'message': 'Product moved to cart successfully.',
+                    'cart_quantity': cart_item.quantity
+                    }
+                return JsonResponse(response_data)
+
+        if not created:
+            if (cart_item.quantity + 1 > 9 ):
+                messages.error(request,"Item quantity cannot exceed 9.")
+                response_data = {
+                    'success': False,
+                    'message': 'Product cannot be added to cart as quantity exceeds 9',
+                    'cart_quantity': cart_item.quantity
+                }
+                return JsonResponse(response_data)
+            else:
+                cart_item.quantity += 1
+        else:
+            cart_item.quantity = 1
+        cart_item.save()
+        
 
         response_data = {
             'success': True,
@@ -242,6 +260,7 @@ def update_cart(request):
         for key, value in request.POST.items():
             if key.startswith('quantity_'):
                 cart_item_id = key.replace('quantity_', '')
+              
                 try:
                     cart_item = CartProduct.objects.get(id=cart_item_id)
                     quantity = int(value)
@@ -257,6 +276,19 @@ def update_cart(request):
                     pass
     return redirect('view_cart')
 
+
+def update_cart1(request, product_id, quantity):
+    if request.method == 'POST':
+        product = Products.objects.get(pk=product_id)
+        user = request.session.get("customer_id")
+        customer = Customer.objects.get(id=user)    
+        cart, created = Cart.objects.get_or_create(customer=customer)
+        cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
+        cart_item.quantity = quantity
+        cart_item.save()
+        return JsonResponse({'success': True})
+    else:
+        return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 from django.http import JsonResponse
 
 def remove_from_cart(request, product_id):

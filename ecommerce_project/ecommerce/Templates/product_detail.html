@@ -60,8 +60,8 @@
                     </button>
                     <a type="button" class="btn btn-outline-dark p-2" disabled href="/cart" data-toggle="tooltip"
                         data-placement="auto" title="View Cart"> {{ cart_quantity }}</a>
-                    <button type="button" class="btn btn-outline-dark p-2 btn-addtocart"
-                        data-product-id="{{product.id}}">
+                        <button type="button" class="btn btn-outline-dark p-2 btn-addtocart" data-product-id="${productID}" data-toggle="tooltip"
+                                data-placement="auto right" title="Max 9" >
                         <span class="fa fa-plus plus"></span></button>
                 </div>
                 {% endif %}

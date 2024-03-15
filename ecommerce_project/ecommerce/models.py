@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import models
+from django.core.validators import MaxValueValidator
 
 # Create your models here.
 class Category(models.Model):
@@ -112,7 +113,7 @@ class Cart(models.Model):
 class CartProduct(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1,validators=[MaxValueValidator(9)])
 
     def __str__(self):
         return f"{self.product.name} in Cart for {self.cart.customer.user_name}"

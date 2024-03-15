@@ -6,6 +6,7 @@
     <div class="row">
         <div class="col-7">
             <h2>Bag</h2>
+            
             <div class="container">
                 {% if cart_items %}
                 {% for cart_item in cart_items %}
@@ -26,12 +27,14 @@
                         {% endif %}
                         <div class="quan-drop">
                             <label for="quantity">Quantity:</label>
-                            <select name="quantity" id="quantity" class="border-0" style="width: 40px;">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
+                            <select name="quantity" id="quantity" class="border-0 quantity-select" style="width: 40px;"
+                                data-product-id="{{ cart_item.id }}">
+                                {% for i in '123456789' %}
+                                <option value="{{ i }}" {% if i == cart_item.quantity|stringformat:"s"  %} selected {% endif %}> {{ i }}
+                                </option>
+                                {% endfor %}
                             </select>
+
                             <label for="Size">Size:</label>
                             <select name="Size" id="quantity" class="border-0" style="width: 90px;">
                                 <option value="onesize">Onesize</option>
@@ -91,5 +94,31 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.quantity-select').forEach(function (select) {
+            select.addEventListener('change', function (event) {
+                const quantitys = event.target.value;
+                let quantity = parseInt(quantitys)
+                const productId1 = event.target.dataset.productId;
+                let productId = parseInt(productId1)
+
+                fetch(`/update_cart1/${productId}/${quantity}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.reload()
+                })
+                .catch(error => console.log('Error:', error));
+            });
+        });
+    });
+</script>
 
 {% endblock %}
