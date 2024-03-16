@@ -248,6 +248,28 @@ def remove_from_cart1(request, product_id):
         }
         return JsonResponse(response_data)
 
+def remove_all_from_cart(request, product_id):
+    if request.method == 'POST':
+        product = Products.objects.get(pk=product_id)
+        user = request.session.get("customer_id")
+        customer = Customer.objects.get(id=user)    
+        cart, created = Cart.objects.get_or_create(customer=customer)
+        cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
+        
+        cart_item.quantity = 0
+        cart_item.save()
+        zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
+        for cart_item in zero_quantity_cart_items:
+            cart_item.clean_up()
+
+        response_data = {
+            'success': True,
+            'message': 'Product removed from cart successfully.',
+            'cartQuantity': cart_item.quantity,
+        }
+        return JsonResponse(response_data)
+
+
 def empty_cart(req):
     user = req.session.get("customer_id")
     cart = Cart.objects.get(customer=user)

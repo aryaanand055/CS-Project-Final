@@ -110,15 +110,19 @@ function moveToWishlist(productID) {
             product_id: productID
         }),
     }).then(() => {
-        fetch(`/remove_from_cart/${productID}/`, {
+        fetch(`/remove_all_from_cart/${productID}/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": getCookie("csrftoken"),
             },
-        }).then(() => {
-            window.location.reload()
         })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location = "wishlist";
+                }
+            }).catch(error => console.error("Error occured"))
     })
 
 }
@@ -328,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cartItems.forEach((item) => {
         item.addEventListener("click", (e) => {
             const productID = item.getAttribute('data-product-id');
-            removeFromCart(productID, 1)
+            removeFromCart(productID, 2)
         })
     })
 })
@@ -387,26 +391,41 @@ function addToCart(productID) {
 }
 
 function removeFromCart(productID, mode) {
-    fetch(`/remove_from_cart/${productID}/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"),
-        },
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (mode === 0) {
-                    updateCartUI(data.cartQuantity, productID, "");
-                } else if (mode === 1) {
+    if (mode == 2) {
+        fetch(`/remove_all_from_cart/${productID}/`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     window.location = "cart";
                 }
-            } else {
-                console.error(data.message);
-            }
+            }).catch(error => console.error("Error occured"))
+    }
+    else {
+        fetch(`/remove_from_cart/${productID}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
         })
-        .catch(error => console.error("Fetch error:", error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (mode === 0) {
+                        updateCartUI(data.cartQuantity, productID, "");
+                    }
+                } else {
+                    console.error(data.message);
+                }
+            })
+            .catch(error => console.error("Fetch error:", error));
+    }
 }
 document.addEventListener('DOMContentLoaded', function () {
     const togglePassword = document.getElementById('togglePassword');
