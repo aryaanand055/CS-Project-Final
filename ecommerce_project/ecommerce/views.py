@@ -437,8 +437,13 @@ def brand_details(req, brand_id):
     for product in products:
             first_image = product.images.first()
             product.image = first_image.image if first_image else None
-    print(products)
-    return render(req, 'brand_detail.html', {'brand': brand, 'products_list': products})
+    navmode = ""
+    logomode = ""
+    if brand.dark_background == True:
+        navmode="navbar-ligh"
+        logomode = "-inverted"
+    return render(req, 'brand_detail.html', {'brand': brand, 'products_list': products, 'navbarmode': navmode, "logoInverted":logomode})
+
 # Checkout
 
 def get_user_location(ip_address):
@@ -462,6 +467,9 @@ def get_client_ip(request):
 def checkout(request):
     user = request.session.get("customer_id")
     customer = Customer.objects.get(id=user)
+
+    order = Order.objects.create(customer=customer)
+
     name = customer.user_name
     fname = customer.first_name
     lname = customer.last_name
@@ -478,12 +486,16 @@ def checkout(request):
     products_and_quantities = []
     cart = Cart.objects.get(customer=user)
     cart_items = CartProduct.objects.filter(cart=cart)
+
+    total_price = 0
     for cart_item in cart_items:
         product = cart_item.product
         quantity = cart_item.quantity
         price = cart_item.product.price
         totalProductPrice = price * quantity
+        total_price += totalProductPrice
         products_and_quantities.append((product.name, quantity, price, totalProductPrice))
+        OrderItem.objects.create(order=order, product=product, quantity=quantity)
 
     table_rows = ""
     for item in products_and_quantities:
@@ -512,3 +524,4 @@ def checkout(request):
     empty_cart(request)
 
     return render(request, 'checkout_success.html', {"products_list": products_and_quantities})
+

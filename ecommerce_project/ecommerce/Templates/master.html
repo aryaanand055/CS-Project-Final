@@ -18,7 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Sacramento&display=swap"
-        rel="stylesheet">
+        rel="style
+        sheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/92390b5043.js" crossorigin="anonymous"></script>
     <script src="{% static 'script.js' %}"></script>
@@ -65,7 +66,7 @@
                                 </a>
                                 <div class="dropdown-menu border-0 shadow-sm text-center">
                                     {% for brand in brands %}
-                                    <a class="dropdown-item" href="/products?brand={{brand.id}}">
+                                    <a class="dropdown-item" href="/brand/{{brand.id}}">
                                         {{brand}}</a>
                                     {% endfor %}
                                 </div>

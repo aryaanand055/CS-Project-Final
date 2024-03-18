@@ -54,7 +54,8 @@ class Brand(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     logo = models.FileField(upload_to="uploads/brands/logos", blank=True, null=True)
-    poster = models.FileField(upload_to="uploads/brands/posters", blank=True, null=True, help_text="High res backgound image. landscape. Preferably light coloured")
+    poster = models.FileField(upload_to="uploads/brands/posters", blank=True, null=True, help_text="High res backgound image. landscape.")
+    dark_background = models.BooleanField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     tagline = models.CharField(max_length=75, null=True)
 
@@ -101,8 +102,6 @@ class Products(models.Model):
     def __str__(self):
         return self.name
     
-
-
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     products = models.ManyToManyField(Products, through='CartProduct')
@@ -140,3 +139,41 @@ class Wishlist(models.Model):
 
     def is_in_wishlist(self, product):
         return product in self.products.all()
+
+class Order(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    products = models.ManyToManyField(Products, through='OrderItem')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order Id: #{self.id} - User: {self.customer.user_name}"
+    
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.quantity}"
+
+
+from django.contrib import admin
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id', 'customer', 'display_products', 'created_at']
+    list_filter = ['created_at']  # Optional: Add a filter for the created_at field
+
+    def display_products(self, obj):
+        return ", ".join([item.product.name for item in obj.orderitem_set.all()])
+    display_products.short_description = 'Products'
+
+    inlines = [OrderItemInline]
+admin.site.register(Order, OrderAdmin)
+
+
+
+
