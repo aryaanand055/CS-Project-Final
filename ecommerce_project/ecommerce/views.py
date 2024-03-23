@@ -87,18 +87,67 @@ def signupUser(req):
     if req.method == 'POST':
         form = CustomUserCreationForm(req.POST)
         if form.is_valid():
-            # Manually hash the password before saving
-            user = form.save(commit=False)
-            user.password = make_password(form.cleaned_data['password'])
-            user.save()
+            # Verify that the data has not been tampered with
+            email = form.cleaned_data['email']
+            otp = req.POST.get('otp')
+            session_otp = req.session.get('otp')
+            session_email = req.session.get('email')
 
-            messages.success(req, f"The user {user.user_name} is registered successfully.")
-            return redirect('loginUser')
+            if session_otp and session_email:
+                if session_otp == otp and session_email == email:
+                    del req.session['otp']
+                    # Manually hash the password before saving
+                    user = form.save(commit=False)
+                    user.password = make_password(form.cleaned_data['password'])
+                    user.save()
+                    messages.success(req, f"The user {user.user_name} is registered successfully.")
+                    return redirect('loginUser')
+                else:
+                    messages.error(req, "Data mismatch. Registration failed.")
+            else:
+                messages.error(req, "OTP or email not found.")
         else:
             messages.error(req, "Registration failed. Please correct the errors.")
     else:
         form = CustomUserCreationForm()
     return render(req, 'signup.html', {'form': form})
+
+from django.core.mail import send_mail
+import random
+
+def send_otp_view(request, email):
+    if request.method == 'POST':
+        otp = ''.join(random.choices('0123456789', k=6))
+        request.session['otp'] = otp
+        request.session['email'] = email
+
+        # Compose the email message
+        subject = 'Your OTP for registration'
+        message = f'Your OTP is: {otp}'
+        sender_email = 'aryaanand052@gmail.com'  
+        recipient_email = email
+
+        try:
+            send_mail(subject, message, sender_email, [recipient_email])
+            return JsonResponse({'success': True, 'message': f"An OTP has been sent to {email}. Please check your email."})
+        except Exception as e:
+            print(f'Error sending OTP email: {e}')
+            return JsonResponse({'success': False, 'message': "Failed to send OTP. Please try again later."})
+    else:
+        return JsonResponse({'success': False, 'message': "Invalid request method."})
+
+
+def verify_otp_view(request, otp):
+    print(otp)
+    if request.method == 'POST':
+        aotp = request.session.get("otp")
+        if otp == aotp:  
+            
+            return JsonResponse({'success': True, 'message': "OTP verification successful."})
+        else:
+            return JsonResponse({'success': False, 'message': "Invalid OTP. Please try again."})
+    else:
+        return JsonResponse({'success': False, 'message': "Invalid request method."})
 
 def tac(req):
     return render(req, 'tac.html')

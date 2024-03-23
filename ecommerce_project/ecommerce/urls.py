@@ -27,6 +27,8 @@ urlpatterns = [
     path('brand/<int:brand_id>', views.brand_details, name='brand_details'),
     path('apply_offer/', views.apply_offer, name='apply_offer'),
     path('remove_coupon/', views.remove_coupon, name='remove_coupon/'),
+    path('send-otp/<str:email>', views.send_otp_view, name='send_otp'),
+    path('verify-otp/<str:otp>', views.verify_otp_view, name='verify_otp'),
 ]
 
 
