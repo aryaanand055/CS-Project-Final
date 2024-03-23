@@ -1,38 +1,54 @@
 {% extends "master.html" %}
-
+{% load mathfilters %}
 {% block content %}
 <div class="container mt-3">
 
-    <h1>Checkout Success</h1>
-    <p>Your enquiry has been sent. The seller will contact you soon.</p>
-    <p>For more details or assistance, please contact us:</p>
-    <p>Contact Information: <a href="mailto:aryaanand050@gmail.com">aryaanand050@gmail.com</a></p>
+    <h2>Order Summary</h2>
+    <p class="hideprint">Your order request has been sent. For assistance contact <a
+            href="mailto:aryaanand050@gmail.com">aryaanand050@gmail.com</a></p>
+    <p class="hideprint">To view all your past orders, head over to <a href="{% url 'profile' %}">Your Account</a> section</p>
     <br>
-    <h2>Summary</h2>
 
-    <table class="table caption-top table-striped m-4 text-center">
-        <caption>Order Details</caption>
-        <thead class="table-dark">
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Product</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products_list %}
-            <tr>
-                <th scope="row">{{ forloop.counter}}</th>
-                <td>{{product.0}}</td>
-                <td>{{product.1}}</td>
-                <td>{{product.2}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="row">
+        <div class="col-md-8">
+            <h4>Products Summary</h4>
+            <div class="list-group">
+                {% for item in order.orderitem_set.all %}
+                <a href="{% url 'product_detail' item.product.id %}" class="list-group-item ">
+                    <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}"
+                        style="width: 100px; object-fit:cover;height: 100px; border-radius:16px;">
+                    {{ item.product.name }} (Quantity: {{ item.quantity }},
+                    Price: ₹{{ item.product.price }})
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-md-4 ">
+            <div class="m-auto p-3 payment-summary">
+                <h4>Payment Summary</h4>
+                <p><small>Taxes are included in the products' prices</small></p>
+                <p>Subtotal: <span class="float-end">₹{{ order.total_price }}</span></p>
+                <p>Shipping Charges: <span class="float-end text-danger">+₹{{ order.shippingcharge }}</span>
+                </p>
+                <p>Offer:
+                    {% if order.offer.code%}
+                    ({{order.offer.code}})<span
+                        class="float-end text-success">-₹{{order.total_price|sub:order.discounted_price|add:0.00 }}</span>
+                    {% else %}
+                    <span class="float-end text-warning">No Offer Applied</span>
+                    {%endif%}
+                </p>
+                <hr>
+                <strong>
+                    <p>Total Price: <span class="float-end">₹{{ order.total_price|add:order.shippingcharge }}</span>
+                    </p>
+
+                </strong>
+            </div>
+        </div>
+    </div>
 
     <!-- Print the details as a pdf -->
-    <button class="btn btn-primary print-btn" onclick="print()">Print Details</button>
+    <button class="btn btn-primary print-btn mt-5 " onclick="print()">Print Details</button>
 </div>
 {% endblock %}

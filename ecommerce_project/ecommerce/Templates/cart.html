@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-7">
             <h2>Bag</h2>
-            
+
             <div class="container">
                 {% if cart_items %}
                 {% for cart_item in cart_items %}
@@ -30,7 +30,8 @@
                             <select name="quantity" id="quantity" class="border-0 quantity-select" style="width: 40px;"
                                 data-product-id="{{ cart_item.id }}">
                                 {% for i in '123456789' %}
-                                <option value="{{ i }}" {% if i == cart_item.quantity|stringformat:"s"  %} selected {% endif %}> {{ i }}
+                                <option value="{{ i }}" {% if i == cart_item.quantity|stringformat:"s"  %} selected
+                                    {% endif %}> {{ i }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -45,7 +46,7 @@
                         <div class="icons">
 
                             <button class="link-secondary remove-from-cart btn" data-toggle="tooltip"
-                              data-placement="auto left" title="Remove Product" data-product-id="{{ cart_item.id }}">
+                                data-placement="auto left" title="Remove Product" data-product-id="{{ cart_item.id }}">
                                 <i class="fa-regular fa-trash-can"></i>
                             </button>
 
@@ -72,16 +73,24 @@
             <h2>Summary</h2>
             <div class="p-3 w-100">
                 Subtotal
-                <span class="float-end">₹ {{total_price}}</span>
+                <span class="float-end">₹ {{cart.total_price}}</span>
             </div>
             <div class="p-3">
                 Estimated Delivery & Handling
-                <span class="float-end">₹ 1 250.00</span>
+                <span class="float-end">₹ {{shipping_charge}}</span>
+            </div>
+            <div class="p-3 d-flex align-items-center">
+                <span class="w-100">Apply Offer</span>
+                <input type="text" class="form-control mx-2" id="offerCode" placeholder="Enter offer code" value="{% if cart.offer %}{{cart.offer.code}}{% endif %}">
+                <button class="btn btn-dark apply-offer-btn">Apply</button>
+            </div>
+            <div class="p-3">
+                Discount  <span class="float-end text-danger">-₹ {{ cart.total_price|sub:cart.discounted_price|floatformat:"0" }}.00</span>
             </div>
             <hr class="border-1 border-dark border-top">
             <div class="p-3 w-100 fw-bolder fs-4">
                 Total
-                <span class="float-end">₹ {{ total_price|add:1250|floatformat:"0" }}.00</span>
+                <span class="float-end">₹ {{cart.discounted_price|add:shipping_charge}}</span>
             </div>
             <hr class="border-1 border-dark border-top">
             {% if not cart_items %}
@@ -96,29 +105,98 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.quantity-select').forEach(function (select) {
-            select.addEventListener('change', function (event) {
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.quantity-select').forEach(function(select) {
+            select.addEventListener('change', function(event) {
                 const quantitys = event.target.value;
                 let quantity = parseInt(quantitys)
                 const productId1 = event.target.dataset.productId;
                 let productId = parseInt(productId1)
-
                 fetch(`/update_cart1/${productId}/${quantity}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    window.location.reload()
-                })
-                .catch(error => console.log('Error:', error));
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.reload()
+                    })
+                    .catch(error => console.log('Error:', error));
             });
         });
     });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.apply-offer-btn').addEventListener('click', function() {
+        var offerCode = document.getElementById('offerCode').value;        
+        if (!offerCode.trim()) {
+            removeCouponFromCart();
+            return;
+        }
+        
+        fetch('/apply_offer/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'offer_code=' + encodeURIComponent(offerCode)
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload()
+                console.log('Offer applied successfully');
+            } else {
+                console.error('Failed to apply offer');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    function removeCouponFromCart() {
+        fetch('/remove_coupon/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload()
+                console.log('Coupon removed from cart successfully');
+            } else {
+                console.error('Failed to remove coupon from cart');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Function to get CSRF token from cookie
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+
+</script>
+
 
 {% endblock %}

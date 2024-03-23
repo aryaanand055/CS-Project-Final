@@ -11,7 +11,9 @@ from django.contrib.sites.models import Site
 import requests
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password, check_password
-
+from django.views.decorators.http import require_POST
+from django.db.models import Sum, F, FloatField
+from decimal import Decimal
 
 def categories(request):
     return {'categories': Category.get_all_categories()}
@@ -130,8 +132,8 @@ def view_cart(request):
     if cust:
         cart, created = Cart.objects.get_or_create(customer_id=cust)
         cart_items = CartProduct.objects.filter(cart=cart)
-        total_price = sum(item.product.price * item.quantity for item in cart_items)
-        
+        shippingCharge = ShippingCharge.objects.get(country = "India").charge
+        print(shippingCharge)
         # Retrieve all details about the product along with images
         cart_items_with_details = []
         for cart_item in cart_items:
@@ -149,7 +151,7 @@ def view_cart(request):
             }
             cart_items_with_details.append(product_details)
         
-        return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items_with_details, 'total_price': total_price})
+        return render(request, 'cart.html', {'cart': cart, 'cart_items': cart_items_with_details, 'shipping_charge': shippingCharge})
     
     messages.info(request, "Login to add items to cart")
     return redirect("loginUser")
@@ -177,7 +179,6 @@ def add_to_cart(request, product_id):
         messages.info(request, "Login to add items to cart")
         return redirect("loginUser")
         
-
     if request.method == 'POST':
         from_wishlist = request.GET.get("from_wishlist")
         product = Products.objects.get(pk=product_id)
@@ -215,7 +216,7 @@ def add_to_cart(request, product_id):
             cart_item.quantity = 1
         cart_item.save()
         
-
+        update_cart_pricing(request)
         response_data = {
             'success': True,
             'message': 'Product added to cart successfully.',
@@ -240,7 +241,7 @@ def remove_from_cart1(request, product_id):
             zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
             for cart_item in zero_quantity_cart_items:
                 cart_item.clean_up()
-
+        update_cart_pricing(request)
         response_data = {
             'success': True,
             'message': 'Product removed from cart successfully.',
@@ -261,7 +262,7 @@ def remove_all_from_cart(request, product_id):
         zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
         for cart_item in zero_quantity_cart_items:
             cart_item.clean_up()
-
+        update_cart_pricing(request)
         response_data = {
             'success': True,
             'message': 'Product removed from cart successfully.',
@@ -269,12 +270,32 @@ def remove_all_from_cart(request, product_id):
         }
         return JsonResponse(response_data)
 
+def update_cart_pricing(request):
+    user_id = request.session.get("customer_id")
+    if user_id:
+        cart = Cart.objects.get(customer=user_id)
+        cart_items = CartProduct.objects.filter(cart=cart)
+        total_price = cart_items.aggregate(total_price=Sum(F('quantity') * F('product__price'), output_field=FloatField()))['total_price'] or Decimal('0')
+        cart.total_price = total_price
+        if cart.offer:
+            discount_percentage = cart.offer.discount_percentage
+            print(discount_percentage)
+            discounted_price = int(total_price) - int(int(total_price)*int(discount_percentage)/100)
+            cart.discounted_price = discounted_price
+        else:
+            cart.discounted_price = total_price
+        cart.save()
+
+        return JsonResponse({'success': True, 'message': 'Cart pricing updated successfully'})
+    else:
+        return JsonResponse({'success': False, 'message': 'User not logged in'}, status=400)
 
 def empty_cart(req):
     user = req.session.get("customer_id")
     cart = Cart.objects.get(customer=user)
     cart.cartproduct_set.all().delete()
     cleanCart()
+    update_cart_pricing(req)
     return redirect("products")
 
 def update_cart(request):
@@ -296,6 +317,7 @@ def update_cart(request):
                             cart_item.clean_up()
                 except CartProduct.DoesNotExist:
                     pass
+    update_cart_pricing(request)
     return redirect('view_cart')
 
 
@@ -308,27 +330,23 @@ def update_cart1(request, product_id, quantity):
         cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
         cart_item.quantity = quantity
         cart_item.save()
+        update_cart_pricing(request)
         return JsonResponse({'success': True})
     else:
+        update_cart_pricing(request)
         return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 from django.http import JsonResponse
 
 def remove_from_cart(request, product_id):
-    print(product_id)
     if request.method == 'GET':
         product = Products.objects.get(pk=product_id)
         user_id = request.session.get("customer_id")
         
         if user_id:
             try:
-                # Retrieve the user's cart
                 customer = Customer.objects.get(id=user_id)
                 cart = Cart.objects.get(customer=customer)
-                
-                # Retrieve the cart item for the specified product
                 cart_item = CartProduct.objects.get(cart=cart, product=product)
-                
-                # Decrement the quantity or remove the product from the cart
                 if cart_item.quantity > 1:
                     cart_item.quantity -= 1
                     cart_item.save()
@@ -337,8 +355,8 @@ def remove_from_cart(request, product_id):
                     zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
                     for cart_item in zero_quantity_cart_items:
                         cart_item.clean_up()
-                
                 # Return a JSON response indicating success
+                update_cart_pricing(request)
                 response_data = {
                     'success': True,
                     'message': 'Product removed from cart successfully.',
@@ -363,7 +381,9 @@ def remove_from_cart(request, product_id):
 
 def cleanCart() :
     zero_quantity_cart_items = CartProduct.objects.filter(quantity=0)
+
     for cart_item in zero_quantity_cart_items:
+
         cart_item.clean_up()
 
 
@@ -394,7 +414,11 @@ def profile(req):
     if req.method == "GET":
         if customer_id:
             customer = Customer.objects.filter(id=customer_id).first()
-            return render(req,'profile.html',{"user":customer})
+            user_orders = Order.objects.filter(customer=customer)
+            for order in user_orders:
+                total_price = sum(item.product.price * item.quantity for item in order.orderitem_set.all())
+                order.total_price = total_price
+            return render(req,'profile.html',{"user":customer, 'user_orders': user_orders})
         else:
             return redirect("loginUser")
     else:
@@ -468,8 +492,6 @@ def checkout(request):
     user = request.session.get("customer_id")
     customer = Customer.objects.get(id=user)
 
-    order = Order.objects.create(customer=customer)
-
     name = customer.user_name
     fname = customer.first_name
     lname = customer.last_name
@@ -487,16 +509,17 @@ def checkout(request):
     cart = Cart.objects.get(customer=user)
     cart_items = CartProduct.objects.filter(cart=cart)
 
-    total_price = 0
+    shippingcharge = ShippingCharge.objects.get(country = "India").charge
+    order = Order.objects.create(customer=customer, total_price=cart.total_price, offer = cart.offer, discounted_price = cart.discounted_price, shippingcharge = int(shippingcharge))
+
     for cart_item in cart_items:
         product = cart_item.product
         quantity = cart_item.quantity
         price = cart_item.product.price
         totalProductPrice = price * quantity
-        total_price += totalProductPrice
         products_and_quantities.append((product.name, quantity, price, totalProductPrice))
         OrderItem.objects.create(order=order, product=product, quantity=quantity)
-
+    order.save()
     table_rows = ""
     for item in products_and_quantities:
         product, quantity, price, totalProductPrice = item
@@ -521,7 +544,37 @@ def checkout(request):
     from_email = 'aryaanand053@gmail.com'
     recipient_email = 'aryaanand050@gmail.com'
     send_mail(subject, '', from_email, [recipient_email], html_message=html_message)
+    remove_coupon(request)
+    update_cart_pricing(request)
     empty_cart(request)
 
-    return render(request, 'checkout_success.html', {"products_list": products_and_quantities})
+    return render(request, 'checkout_success.html', {"products_list": products_and_quantities, "order": order})
 
+def remove_coupon(request):
+    try:
+        user = request.session.get("customer_id")
+        customer = Customer.objects.get(id=user)
+        cart = Cart.objects.get(customer=customer)
+        cart.offer = None
+        cart.save()
+        update_cart_pricing(request)
+        return JsonResponse({'success': True, 'message': 'Offer is removed'})
+
+    except:
+        return JsonResponse({'success': False, 'message': 'Offer is not removed'})
+    
+
+@require_POST
+def apply_offer(request):
+    offer_code = request.POST.get('offer_code')
+    print(offer_code)
+    try:
+        offer = Offer.objects.get(code=offer_code)
+    except Offer.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Invalid offer code'})
+    user = request.session.get("customer_id")
+    cart = Cart.objects.get(customer=user)
+    cart.offer = offer
+    update_cart_pricing(request)
+    cart.save()
+    return JsonResponse({'success': True, 'message': 'Offer applied successfully'})

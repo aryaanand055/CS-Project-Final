@@ -1,71 +1,253 @@
 {% extends "master.html" %}
-
-{% block title %}Profile{% endblock %}
+{% load mathfilters %}
+{% block title %}Your Account{% endblock %}
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <h1 class="text-center mt-4">Profile</h1>
 
-
-            <form method="post" class="mt-4 form-group">
-                {% csrf_token %}
-
-                <div class="form-group mb-3">
-                    <label for="id_user_name">Username</label>
-                    <input type="text" name="user_name" value="{{ user.user_name }}" maxlength="150"
-                        autocapitalize="none" autocomplete="user_name" autofocus="" required="" id="id_user_name"
-                        control-id="ControlID-3" class="form-control" spellcheck="false">
-                    {% if form.user_name.errors %}
-                    <small class="text-danger">{{ form.user_name.errors }}</small>
-                    {% endif %}
-                </div>
-
-                <div class="row">
-                    <div class="form-group mb-3 col">
-                        <label for="id_first_name">First Name</label>
-                        <input type="text" name="first_name" value="{{ user.first_name }}" id="id_first_name"
-                            class="form-control">
-                        {% if form.first_name.errors %}
-                        <small class="text-danger">{{ form.first_name.errors }}</small>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group mb-3 col">
-                        <label for="id_last_name">Last Name</label>
-                        <input type="text" name="last_name" value="{{ user.last_name }}" id="id_last_name"
-                            class="form-control">
-                        {% if form.last_name.errors %}
-                        <small class="text-danger">{{ form.last_name.errors }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="id_email">Email</label>
-                    <input type="email" name="email" value="{{ user.email }}" id="id_email" class="form-control">
-                    {% if form.email.errors %}
-                    <small class="text-danger">{{ form.email.errors }}</small>
-                    {% endif %}
-                </div>
-
-                <div class="btn-group w-100 mb-2">
-                    <button type="submit" class="btn btn-dark">Update Profile</button>
-                    <!-- <a href="/products" class="btn btn-outline-dark">Cancel</a> -->
-                </div>
-            </form>
-            <button class="btn btn-outline-danger w-100" id="deleteProfileBtn">Delete
-                Profile</button>
-            {% if messages %}
-            <div class="alert alert-secondary">
-                <ul class="messages">
-                    {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-                        {% endfor %}
-                </ul>
+        <!-- Left Sidebar -->
+        <div class="col-md-4 mt-4 ">
+            <h2>Menu</h2>
+            <div class="list-group px-3 py-4">
+                <a href="#profile-details"
+                    class="list-group-item-menu list-group-item  list-group-item-action active list-group-item-secondary"
+                    id="profile-details-tab">Profile
+                    Details</a>
+                <a href="#settings" class="list-group-item-menu list-group-item   list-group-item-action"
+                    id="settings-tab">Settings</a>
+                <a href="#password-change" class="list-group-item-menu list-group-item   list-group-item-action"
+                    id="password-change-tab">Password Change</a>
+                <a href="#orders" class="list-group-item-menu list-group-item  list-group-item-action"
+                    id="orders-tab">Orders</a>
             </div>
-            {% endif %}
+        </div>
+
+        <!-- Right Content -->
+        <div class="col-md-8">
+            <div class="tab-content">
+
+                <!-- Profile Details -->
+                <div class="tab-pane fade show active" id="profile-details">
+                    <h1 class="text-center mt-4">Profile</h1>
+                    <form method="post" class="mt-4 form-group">
+                        {% csrf_token %}
+
+                        <div class="form-group mb-3">
+                            <label for="id_user_name" class="fw-bold">Username</label>
+                            <input type="text" name="user_name" value="{{ user.user_name }}" maxlength="150"
+                                autocapitalize="none" autocomplete="user_name" autofocus="" required=""
+                                id="id_user_name" control-id="ControlID-3" class="form-control" spellcheck="false">
+                            {% if form.user_name.errors %}
+                            <small class="text-danger">{{ form.user_name.errors }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group mb-3 col">
+                                <label for="id_first_name" class="fw-bold">First Name</label>
+                                <input type="text" name="first_name" value="{{ user.first_name }}" id="id_first_name"
+                                    class="form-control">
+                                {% if form.first_name.errors %}
+                                <small class="text-danger">{{ form.first_name.errors }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group mb-3 col">
+                                <label for="id_last_name" class="fw-bold">Last Name</label>
+                                <input type="text" name="last_name" value="{{ user.last_name }}" id="id_last_name"
+                                    class="form-control">
+                                {% if form.last_name.errors %}
+                                <small class="text-danger">{{ form.last_name.errors }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="id_email" class="fw-bold">Email</label>
+                            <input type="email" name="email" value="{{ user.email }}" id="id_email"
+                                class="form-control">
+                            {% if form.email.errors %}
+                            <small class="text-danger">{{ form.email.errors }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="btn-group w-100 mb-2">
+                            <button type="submit" class="btn btn-outline-dark">Save Profile</button>
+                            <button class="btn btn-outline-danger" id="deleteProfileBtn">Delete Profile</button>
+                        </div>
+                    </form>
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="alert alert-success">
+                            <ul class="messages">
+                                {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                                    {% endfor %}
+                            </ul>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Settings -->
+                <div class="tab-pane fade" id="settings">
+                    <h1>Settings</h1>
+                    <p>Exciting <strong>Settings</strong> features are on their way – stay tuned!</p>
+                </div>
+
+                <!-- Password Change -->
+                <div class="tab-pane fade" id="password-change">
+                    <!-- Password change form -->
+                    <h1>Password change form</h1>
+                </div>
+
+                <!-- Orders -->
+                <div class="tab-pane fade" id="orders">
+                    <h1 class="text-center mt-4">All orders</h1>
+                    <table class="table orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date of Ordering
+                                    <button id="sortDate" class="btn btn-sm btn-light">
+                                        <i class="fa-solid fa-arrow-up-1-9"></i>
+                                    </button>
+                                </th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in user_orders %}
+
+                            <tr data-bs-toggle="modal" data-bs-target="#orderDetailsModal{{ order.id }}"
+                                data-toggle="tooltip" data-placement="right" title="View more details"
+                                style="cursor:pointer">
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.created_at }}</td>
+                                <td>₹{{ order.total_price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% for order in user_orders %}
+                <div class="modal fade" id="orderDetailsModal{{ order.id }}" tabindex="-1"
+                    aria-labelledby="orderDetailsModalLabel{{ order.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg custom-modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h3 class="modal-title" id="orderDetailsModalLabel{{ order.id }}">Order Details <small>
+                                        : order ID :{{order.id}} </small></h3>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h4>Products Summary</h4>
+                                        <div class="list-group">
+                                            {% for item in order.orderitem_set.all %}
+                                            <a href="{% url 'product_detail' item.product.id %}"
+                                                class="list-group-item ">
+                                                <img src="{{ item.product.images.first.image.url }}"
+                                                    alt="{{ item.product.name }}"
+                                                    style="width: 100px; object-fit:cover;height: 100px; border-radius:16px;">
+                                                {{ item.product.name }} (Quantity: {{ item.quantity }},
+                                                Price: ₹{{ item.product.price }})
+                                            </a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 ">
+                                        <div class="m-auto p-3">
+                                            <h4>Order Details</h4>
+                                            <p>Date ordered: <span
+                                                    class="float-end"><strong>{{order.created_at}}</strong></span></p>
+                                            <br>
+                                            <p>For more details or to provide some valuable feeedback contact <a
+                                                    href="mailto:aryaanand053@gmail.com"
+                                                    class="text-danger">Arya</a>.</span></p>
+                                        </div>
+
+                                        <div class="m-auto p-3 payment-summary shadow1">
+                                            <h4>Payment Summary</h4>
+                                            <p><small>Taxes are included in the products' prices</small></p>
+                                            <p>Subtotal: <span class="float-end">₹{{ order.total_price }}</span></p>
+                                            <p>Shipping Charges: <span
+                                                    class="float-end text-danger">+₹{{ order.shippingcharge }}</span>
+                                            </p>
+                                            <p>Offer:
+                                                {% if order.offer.code%}
+                                                ({{order.offer.code}})<span
+                                                    class="float-end text-success">-₹{{order.total_price|sub:order.discounted_price|add:0.00 }}</span>
+                                                {% else %}
+                                                <span class="float-end text-warning">No Offer Applied</span>
+                                                {%endif%}
+                                            </p>
+                                            <hr>
+                                            <strong>
+                                                <p>Total Price: <span class="float-end">₹{{ order.total_price|add:order.shippingcharge }}</span>
+                                                </p>
+
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('.list-group-item-menu').click(function(e) {
+            e.preventDefault();
+            var targetId = $(this).attr('href');
+            $('.list-group-item-menu').removeClass('active list-group-item-secondary');
+            $(this).addClass('active list-group-item-secondary');
+            $('.tab-pane').removeClass('show active');
+            $(targetId).addClass('show active');
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ascending = false;
+        document.getElementById('sortDate').addEventListener('click', function() {
+            var ordersTableBody = document.querySelector('.orders-table tbody');
+            var ordersRows = Array.from(ordersTableBody.querySelectorAll('tr'));
+            ordersRows.sort(function(a, b) {
+                var dateA = parseDate(a.children[1].textContent);
+                var dateB = parseDate(b.children[1].textContent);
+                return ascending ? (dateA - dateB) : (dateB - dateA);
+            });
+            ordersRows.forEach(function(row) {
+                ordersTableBody.appendChild(row);
+            });
+            ascending = !ascending;
+        });
+    });
+
+    function parseDate(dateString) {
+        // Split the date string
+        var parts = dateString.split(', ');
+        // Extract date components
+        var month = parts[0].split(' ')[0];
+        var day = parts[0].split(' ')[1];
+        var year = parts[1];
+        var time = parts[2].split(' ')[0];
+        // Parse the date
+        var parsedDate = new Date(month + ' ' + day + ', ' + year + ' ' + time);
+        return parsedDate;
+    }
+</script>
+
 {% endblock %}

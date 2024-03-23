@@ -101,13 +101,33 @@ class Products(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+
+class Offer(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length = 10)
+    description = models.TextField()
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def __str__(self):
+       return self.name
+
+
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     products = models.ManyToManyField(Products, through='CartProduct')
-
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
+    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     def __str__(self):
         return f"{self.customer.user_name}"
+    
+    def save(self, *args, **kwargs):
+        if self.offer:
+            self.discounted_price = int(self.total_price) - (int(self.total_price) * ((int(self.offer.discount_percentage) / 100)))
+        else:
+            self.discounted_price = self.total_price
+        super().save(*args, **kwargs)
     
 class CartProduct(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
@@ -140,13 +160,25 @@ class Wishlist(models.Model):
     def is_in_wishlist(self, product):
         return product in self.products.all()
 
+
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     products = models.ManyToManyField(Products, through='OrderItem')
     created_at = models.DateTimeField(auto_now_add=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
+    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    shippingcharge = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"Order Id: #{self.id} - User: {self.customer.user_name}"
+    
+    def save(self, *args, **kwargs):
+        if self.offer:
+            self.discounted_price = self.total_price - (self.total_price * (self.offer.discount_percentage / 100))
+        else:
+            self.discounted_price = self.total_price
+        super().save(*args, **kwargs)
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -156,7 +188,7 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
 
-
+ 
 from django.contrib import admin
 
 class OrderItemInline(admin.TabularInline):
@@ -174,6 +206,10 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
 admin.site.register(Order, OrderAdmin)
 
+class ShippingCharge(models.Model):
+    country = models.CharField(max_length=100, unique=True)
+    charge = models.DecimalField(max_digits=10, decimal_places=2)
 
-
+    def __str__(self):
+        return f"{self.country}: {self.charge}"
 
