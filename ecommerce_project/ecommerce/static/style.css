@@ -1,8 +1,5 @@
 * {
-    font-family: 'Sacramento',
-        cursive;
-    font-family: 'Comfortaa',
-        cursive;
+
     box-sizing: border-box;
 
 }
@@ -233,4 +230,79 @@ footer .navbar-container {
     .footer {
         display: none;
     }
+}
+
+/* Loader */
+.loader {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    position: relative;
+    margin: 5px;
+    animation: rotate 1s linear infinite
+}
+
+.loader::before,
+.loader::after {
+    content: "";
+    box-sizing: border-box;
+    position: absolute;
+    inset: 0px;
+    border-radius: 50%;
+    border: 4px solid #000000;
+    animation: prixClipFix 2s linear infinite;
+}
+
+.loader::after {
+    inset: 6px;
+    transform: rotate3d(90, 90, 0, 180deg);
+    border-color: #FF3D00;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg)
+    }
+
+    100% {
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes prixClipFix {
+    0% {
+        clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0)
+    }
+
+    50% {
+        clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0)
+    }
+
+    75%,
+    100% {
+        clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%)
+    }
+}
+
+/* Loader over */
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0.25;
+        height: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+        height: auto;
+    }
+
+}
+
+#otpSection,
+#pass1,
+#pass2 {
+    animation: slideDown 0.5s ease forwards;
 }

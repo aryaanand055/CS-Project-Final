@@ -33,16 +33,6 @@
                     <small class="text-danger">{{ form.password.errors }}</small>
                     {% endif %}
                 </div>
-
-
-                {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-                        {% endfor %}
-                </ul>
-                {% endif %}
-
                 <div class="btn-group w-100 mb-2">
                     <button type="submit" class="btn btn-dark">Login</button>
                 </div>
@@ -51,6 +41,9 @@
             <div class="text-center mt-3">
                 <p>Don't have an account? <a href="{% url 'signupUser' %}" class="text-danger ">Sign
                         up now!</a></p>
+            </div> 
+             <div class="text-center mt-3">
+                <p><a href="{% url 'reset_password' %}" class="text-danger ">Locked out?</a></p>
             </div>
         </div>
     </div>

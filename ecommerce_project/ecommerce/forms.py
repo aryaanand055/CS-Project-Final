@@ -18,7 +18,7 @@ class CustomUserCreationForm(forms.ModelForm):
     email = forms.EmailField(
         max_length=254, required=True,
         help_text="Required. Enter a valid email address.",
-        widget=forms.EmailInput(attrs={'class': 'form-control'})  
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'style': "max-width:80%"})  
     )
     class Meta:
         model = Customer  

@@ -13,10 +13,12 @@
                     class="list-group-item-menu list-group-item  list-group-item-action active list-group-item-secondary"
                     id="profile-details-tab">Profile
                     Details</a>
-                <a href="#settings" class="list-group-item-menu list-group-item   list-group-item-action"
-                    id="settings-tab">Settings</a>
+                <a href="#settings" class="list-group-item-menu list-group-item   list-group-item-action disabled "
+                    id="settings-tab" >Settings</a>
                 <a href="#password-change" class="list-group-item-menu list-group-item   list-group-item-action"
-                    id="password-change-tab">Password Change</a>
+                    id="password-change-tab">Change Password</a>
+                <a href="#email-change" class="list-group-item-menu list-group-item  list-group-item-action"
+                    id="email-change-tab">Change Email</a>
                 <a href="#orders" class="list-group-item-menu list-group-item  list-group-item-action"
                     id="orders-tab">Orders</a>
             </div>
@@ -64,8 +66,9 @@
 
                         <div class="form-group mb-3">
                             <label for="id_email" class="fw-bold">Email</label>
-                            <input type="email" name="email" value="{{ user.email }}" id="id_email"
-                                class="form-control">
+                            <input type="email" name="email" value="{{ user.email }}" id="id_email" class="form-control"
+                                disabled data-toggle="tooltip" title="To change email go the change email page."
+                                data-placement="bottom auto">
                             {% if form.email.errors %}
                             <small class="text-danger">{{ form.email.errors }}</small>
                             {% endif %}
@@ -76,16 +79,6 @@
                             <button class="btn btn-outline-danger" id="deleteProfileBtn">Delete Profile</button>
                         </div>
                     </form>
-                    <!-- Messages -->
-                    {% if messages %}
-                    <div class="alert alert-success">
-                            <ul class="messages">
-                                {% for message in messages %}
-                                <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-                                    {% endfor %}
-                            </ul>
-                    </div>
-                    {% endif %}
                 </div>
 
                 <!-- Settings -->
@@ -98,6 +91,66 @@
                 <div class="tab-pane fade" id="password-change">
                     <!-- Password change form -->
                     <h1>Password change form</h1>
+                        <form method="post" class="mt-4 form-group" id="passwordChangeForm" action="/change_password/">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="password" class="fw-bold">Current Password:</label>
+                            <input type="password" name="password" id="password" class="form-control" autocomplete="password"
+                                required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="new_password" class="fw-bold">Enter New Password :</label>
+                            <input type="password" name="new_password" id="new_password" class="form-control" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="new_password_2" class="fw-bold">Enter New Password Again:</label>
+                            <input type="password" name="new_password_2" id="new_password_2" class="form-control" required>
+                        </div>
+                        <div id="passwordMatchMessage" class="text-success m-auto mb-2 w-100"></div>
+
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-dark" id="changePasswordBtn" disabled>Change
+                                Password</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade" id="email-change">
+                    <!-- Email change form -->
+                    <h1 class="mt-4">Change Email</h1>
+                    <form method="post" class="mt-4 form-group" id="emailChangeForm" action="/change_email/">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="current_password" class="fw-bold">Current Password:</label>
+                            <input type="password" name="current_password" id="current_password" class="form-control" autocomplete="current-password"
+                                required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="id_email" class="fw-bold">Enter New Email Address:</label>
+                            <div class="input-group">
+                                <input type="email" name="new_email" id="new_email" class="form-control" required>
+                                <span class="loader m-auto" style="display: none"></span>
+                                <button type="button" class="btn btn-dark" id="sendOtpBtn" style="width: 20%">Send
+                                    OTP</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3" id="otpSection" style="display: none;">
+                            <label for="id_otp" class="fw-bold">Enter OTP:</label>
+                            <div class="input-group">
+                                <input type="text" name="otp" id="id_otp" class="form-control" required>
+                                <button type="button" class="btn btn-dark" id="verifyOtpBtn">Verify OTP</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-dark" id="changeEmailBtn" disabled>Change
+                                Email</button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Orders -->
@@ -188,7 +241,8 @@
                                             </p>
                                             <hr>
                                             <strong>
-                                                <p>Total Price: <span class="float-end">₹{{ order.total_price|add:order.shippingcharge }}</span>
+                                                <p>Total Price: <span
+                                                        class="float-end">₹{{ order.total_price|add:order.shippingcharge }}</span>
                                                 </p>
 
                                             </strong>
@@ -248,6 +302,85 @@
         var parsedDate = new Date(month + ' ' + day + ', ' + year + ' ' + time);
         return parsedDate;
     }
-</script>
 
+    function sendOTP() {
+        const email = document.getElementById('new_email').value;
+        document.querySelector(".loader").style.display = 'block';
+        document.getElementById('sendOtpBtn').style.display = 'none';
+        fetch(`/send-otp/${email}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('otpSection').style.display = 'block';
+                    document.getElementById('new_email').readOnly = true;
+                    custom_alert(data.message);
+                } else {
+                    custom_alert(data.message);
+                }
+                document.getElementById("sendOtpBtn").style.display = "block"
+                document.querySelector(".loader").style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                custom_alert('Failed to send OTP. Please try again later.');
+                document.getElementById("sendOtpBtn").style.display = "block"
+                document.querySelector(".loader").style.display = 'none';
+            });
+    }
+    // Function to verify OTP
+    function verifyOTP() {
+        const otp = document.getElementById('id_otp').value;
+        fetch(`/verify-otp/${otp}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to verify OTP');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    custom_alert(data.message);
+                    document.getElementById('changeEmailBtn').disabled = false;
+                    document.getElementById('id_otp').readOnly = true;
+                } else {
+                    custom_alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                custom_alert(`Error: ${error}`);
+            });
+    }
+    document.getElementById('sendOtpBtn').addEventListener('click', sendOTP);
+    document.getElementById('verifyOtpBtn').addEventListener('click', verifyOTP);
+</script>
+<script>
+const messageEle = document.getElementById("passwordMatchMessage")
+document.getElementById("new_password_2").addEventListener("input", checkPassword)
+function checkPassword(){
+    if(document.getElementById("new_password_2").value === document.getElementById("new_password").value){
+        messageEle.innerHTML = "Passwords Match"
+        document.getElementById("changePasswordBtn").disabled = false
+        messageEle.classList.remove("text-danger")
+        messageEle.classList.add("text-success")
+    } else {
+        messageEle.innerHTML = "Passwords don't Match"
+        document.getElementById("changePasswordBtn").disabled = true
+        messageEle.classList.remove("text-success")
+        messageEle.classList.add("text-danger")
+    }
+}
+</script>
 {% endblock %}

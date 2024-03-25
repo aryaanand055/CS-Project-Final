@@ -440,7 +440,63 @@ document.addEventListener('DOMContentLoaded', function () {
     togglePassword.addEventListener('mouseleave', function () {
         passwordInput.type = 'password';
         ic.style.scale = 1
-
     });
 });
+document.addEventListener('DOMContentLoaded', function () {
+    const togglePassword2 = document.getElementById('togglePassword2');
+    const passwordInput2 = document.getElementById('id_password_2');
+    const ic2 = document.querySelector(".fa-eye-2")
+
+
+    togglePassword2.addEventListener('mouseenter', function () {
+        passwordInput2.type = 'text';
+        ic2.style.scale = 1.1
+    });
+
+    togglePassword2.addEventListener('mouseleave', function () {
+        passwordInput2.type = 'password';
+        ic2.style.scale = 1
+    });
+});
+
+
+
+
+function custom_alert(message) {
+
+    alerts_container = document.getElementById("alert-container")
+    // Create the alert element
+    var alertDiv = document.createElement("div");
+    alertDiv.classList.add("alert", "alert-info", "alert-dismissible", "fade", "show", "z-2");
+    alertDiv.setAttribute("role", "alert");
+    alertDiv.id = "alertBS";
+
+    // Create the message span
+    var messageSpan = document.createElement("span");
+    messageSpan.classList.add("message-content");
+    messageSpan.textContent = message;
+
+    // Create the close button
+    var closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.classList.add("btn-close");
+    closeButton.setAttribute("data-bs-dismiss", "alert");
+    closeButton.setAttribute("aria-label", "Close");
+
+    // Append the message span and close button to the alert element
+    alertDiv.appendChild(messageSpan);
+    alertDiv.appendChild(closeButton);
+
+    // Append the alert element to the body
+    alerts_container.appendChild(alertDiv);
+
+    //Set the timout
+    setTimeout(function () {
+        alertDiv.classList.remove("show");
+        alertDiv.classList.add("fade");
+        setTimeout(function () {
+            alertDiv.remove(); // Removing the alert from the DOM
+        }, 1000); // Waiting for the fade-out animation to complete
+    }, 3000);
+}
 

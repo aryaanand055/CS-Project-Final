@@ -29,6 +29,10 @@ urlpatterns = [
     path('remove_coupon/', views.remove_coupon, name='remove_coupon/'),
     path('send-otp/<str:email>', views.send_otp_view, name='send_otp'),
     path('verify-otp/<str:otp>', views.verify_otp_view, name='verify_otp'),
+    path('change_email/', views.change_email, name='change_email'),
+    path('change_password/', views.change_password, name='change_password'),
+    path('reset_password/', views.reset_password, name='reset_password'),
+    path('verifyUser/<str:email>', views.verifyUser, name='verifyUser'),
 ]
 
 

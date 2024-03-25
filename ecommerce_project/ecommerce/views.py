@@ -115,6 +115,15 @@ def signupUser(req):
 from django.core.mail import send_mail
 import random
 
+def verifyUser(req, email):
+    try:
+        user =  Customer.objects.get(email = email)
+        return JsonResponse({"success": True, "msg": "Customer exists"})
+    
+    except Customer.DoesNotExist:
+        return JsonResponse({"success": False, "msg": "Customer doesn't exist"})
+
+
 def send_otp_view(request, email):
     if request.method == 'POST':
         otp = ''.join(random.choices('0123456789', k=6))
@@ -136,13 +145,61 @@ def send_otp_view(request, email):
     else:
         return JsonResponse({'success': False, 'message': "Invalid request method."})
 
+def change_email(request):
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_email = request.POST.get('new_email')
+        otp = request.POST.get('otp')
+
+        if current_password and new_email:
+            customerID = request.session.get("customer_id")
+            customer = Customer.objects.get(id = customerID)
+
+            if check_password(current_password, customer.password):
+                session_otp = request.session.get('otp')
+                session_email = request.session.get('email')
+                if session_otp and session_email:
+                    if session_email == new_email and session_otp == otp:
+                
+                        customer.email = new_email
+                        customer.save()
+                        messages.info(request,"Your Email has been updated successfully!")
+                        return redirect('profile')
+                    else:
+                        messages.error(request, "OTP incorrect. Email change reverted.")
+                        return redirect('profile')
+                else:
+                    messages.error(request, "OTP or Email not found")
+                    return redirect('profile')
+            else:
+                messages.error(request, "Incorrect password. Please try again.")
+                return redirect('profile')
+        else:
+            messages.error(request, "Both current password and new email address are required.")
+            return redirect('profile')
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+def change_password(request):
+    if request.method == "POST":
+        current_password = request.POST.get('password')
+        new_password = request.POST.get('new_password')
+        customerID = request.session.get("customer_id")
+        customer = Customer.objects.get(id = customerID)
+        if check_password(current_password, customer.password):
+            customer.password = make_password(new_password)
+            customer.save()
+            messages.success(request, "Password successfully changed")
+            return redirect("profile")
+        else:
+            messages.error(request, "Password is Incorrect.")
+            return redirect('profile')
 
 def verify_otp_view(request, otp):
     print(otp)
     if request.method == 'POST':
         aotp = request.session.get("otp")
         if otp == aotp:  
-            
             return JsonResponse({'success': True, 'message': "OTP verification successful."})
         else:
             return JsonResponse({'success': False, 'message': "Invalid OTP. Please try again."})
@@ -160,12 +217,10 @@ def loginUser(request):
         customer = Customer.objects.filter(email=email).first()
         if customer:
             if check_password(password, customer.password):
-                print("Check successful")
                 request.session['customer'] = customer.user_name
                 request.session['customer_id'] = customer.id
                 return redirect('products')
             else:
-                print("Password incorrect")
                 messages.warning(request, "Invalid Password. Try again with correct credentials.")
         else:
             print("Email not found")
@@ -480,9 +535,37 @@ def profile(req):
             messages.error(req, 'Username is already taken. Please choose a different username.')
             return redirect('profile')
         customer_id = req.session.get('customer_id')
-        customer = Customer.objects.filter(id=customer_id).update(user_name=uname,first_name = fname, last_name = lname, email=email)
-        messages.info(req,"Your Profile has been updated successfully!")
+        customer = Customer.objects.filter(id=customer_id).update(user_name=uname,first_name = fname, last_name = lname)
+        messages.success(req,"Your Profile has been updated successfully!")
         return redirect('profile')
+
+def reset_password(req):
+    if req.method == "GET":
+        return render(req, "forgot_password.html")
+    elif req.method == "POST":
+        email = req.POST.get('email')
+        otp = req.POST.get('otp')
+        session_otp = req.session.get('otp')
+        session_email = req.session.get('email')
+        if session_otp and session_email:
+            if session_otp == otp and session_email == email:
+                del req.session['otp']
+                del req.session['email']
+                user = Customer.objects.get(email = email)
+                user.password = make_password(req.POST.get("password"))
+                user.save()
+                messages.success(req, f"The user {user.user_name}'s password has been changed successfully")
+                return redirect('loginUser')
+            else:
+                messages.error(req, "The entered otp is incorrect")
+                return redirect('reset_password')
+        else:
+            messages.error(req, "OTP or email not found.")
+            return redirect('reset_password')
+
+        
+        
+
 
 def deleteUser(req):
     if req.method == 'POST':

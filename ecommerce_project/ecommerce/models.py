@@ -113,7 +113,7 @@ class Offer(models.Model):
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     products = models.ManyToManyField(Products, through='CartProduct')
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     def __str__(self):
